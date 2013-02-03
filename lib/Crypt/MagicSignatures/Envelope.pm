@@ -240,7 +240,7 @@ sub verify {
     if (ref $key) {
       if (ref $key eq 'HASH') {
 	$key_id = delete $key->{key_id};
-	$verify = delete $key->{verify};
+	$verify = delete $key->{verify} if $key->{verify};
 	$key = delete $key->{value};
 	next unless $key;
       };
@@ -256,12 +256,12 @@ sub verify {
     # Found key/sig pair
     if ($sig) {
 
-      if ($verified ne 'data') {
+      if ($verify ne 'data') {
 	$verified = $mkey->verify($self->sig_base => $sig->{value});
 	last if $verified;
       };
 
-      if ($verified eq 'data' || $verified eq 'compatible') {
+      if ($verify ~~ [qw/data compatible/]) {
 
 	# Verify with b64url data
 	$verified = $mkey->verify(b64url_encode($self->data) => $sig->{value});
@@ -394,12 +394,12 @@ sub dom {
 sub to_xml {
   my $self = shift;
 
-  my $xml;
+  my $embed = shift;
 
-  my $me;
+  my $xml = '';
 
   my $start_tag = 'env';
-  if ($self->{embed}) {
+  if ($embed) {
     $start_tag = 'provenance';
   }
 
@@ -410,13 +410,13 @@ sub to_xml {
   $xml .= qq{<me:$start_tag xmlns:me="http://salmon-protocol.org/ns/magic-env">\n};
 
   $xml .= '  <me:data';
-  $xml .= ' type="' . $me->{data_type} . '"' if exists $me->{data_type};
-  $xml .= ">" . b4url_encode($me->data, 0) . "</me:data>\n";
+  $xml .= ' type="' . $self->data_type . '"' if exists $self->{data_type};
+  $xml .= ">" . b64url_encode($self->data, 0) . "</me:data>\n";
 
-  $xml .= '  <me:encoding>' . $me->encoding . "</me:encoding>\n";
-  $xml .= '  <me:alg>' . $me->alg . "</me:alg>\n";
+  $xml .= '  <me:encoding>' . $self->encoding . "</me:encoding>\n";
+  $xml .= '  <me:alg>' . $self->alg . "</me:alg>\n";
 
-  foreach my $sig (@{$me->{sigs}}) {
+  foreach my $sig (@{$self->{sigs}}) {
     $xml .= '  <me:sig';
     $xml .= ' key_id="' . $sig->{key_id} . '"' if $sig->{key_id};
     $xml .= '>' . b64url_encode($sig->{value}) . "</me:sig>\n"
@@ -496,8 +496,7 @@ Crypt::MagicSignatures - Sign and verify MagicSignatures
   use Crypt::MagicSignatures;
 
   my $me = Crypt::MagicSignatures::Envelope->new({
-    data => 'Some arbitrary string.',
-    data_type => 'text/plain'
+    data => 'Some arbitrary string.'
   });
 
   $me->sign('key-01' => 'RSA.vsd...');
@@ -574,7 +573,8 @@ For retrieving a specific signature, pass a key id,
 otherwise a default signature will be returned.
 
 If a matching signature is found, the signature
-is returned as a hashref, containing data for C<value>
+is returned as a hashref,
+containing b64url encoded data for C<value>
 and possibly C<key_id>.
 If no matching signature is found, false is returned.
 
@@ -678,7 +678,8 @@ L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/d
 =head2 C<sign>
 
   $me->sign( 'key-01' => 'RSA.hgfrhvb ...' )
-     ->sign( 'RSA.hgfrhvb ...' );
+     ->sign( 'RSA.hgfrhvb ...' )
+     ->sign( 'RSA.hgfrhvb ...', -data);
 
   my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
   $me->sign( $mkey );
