@@ -22,6 +22,9 @@ Crypt::MagicSignatures::Envelope - Envelope class for MagicSignatures
 
 L<Crypt::MagicSignatures::Envelope> helps to sign and verify MagicEnvelopes with MagicSignatures as described in the
 L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+MagicSignatures is a I<"robust mechanism for digitally signing nearly arbitrary messages">.
+
+B<This module is an early release! There may be significant changes in the future.>
 
 
 =head1 ATTRIBUTES
@@ -58,7 +61,7 @@ Defaults to C<text/plain>.
 The L<Mojo::DOM> object of the decoded data,
 if the magic envelope contains XML.
 
-B<This attribute is experimental and can change without warning!>
+B<This attribute is experimental and may change without warning!>
 
 
 =head2 C<encoding>
@@ -76,7 +79,7 @@ Defaults to C<base64url>, which is the only encoding supported.
 The signature base of the MagicEnvelope.
 
 
-=head2 <signature>
+=head2 C<signature>
 
   my $sig = $me->signature('key-01');
   my $sig = $me->signature;
@@ -91,7 +94,7 @@ containing b64url encoded data for C<value>
 and possibly C<key_id>.
 If no matching signature is found, false is returned.
 
-B<This attribute is experimental and can change without warning!>
+B<This attribute is experimental and may change without warning!>
 
 
 =head2 C<signed>
@@ -110,7 +113,7 @@ Returns a C<true> value in case the MagicEnvelope is signed at least once.
 Accepts optionally a C<key_id> and returns true, if the
 MagicEnvelope was signed with this specific key.
 
-B<This attribute is experimental and can change without warning!>
+B<This attribute is experimental and may change without warning!>
 
 
 =head1 METHODS
@@ -205,20 +208,19 @@ key id has to be given.
 The private key can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
 L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
-containing the non-generation parameters accepted by
-L<Crypt::MagicSignatures::Key> C<new>.
-
+containing the non-generation parameters accepted by the
+L<Crypt::MagicSignatures::Key> constructor.
 Optionally a flag C<-data> can be passed,
-that won't sign the base string as defined in the
+that will sign the data payload instead of the base string as defined in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
 I<(This is implemented for compatibility with non-standard implementations)>.
 
 On success, the method returns the MagicEnvelope,
-otherwise it returns a false value.
+otherwise it returns a C<false> value.
 
 A MagicEnvelope can be signed multiple times.
 
-B<This method is experimental and can change without warning!>
+B<This method is experimental and may change without warning!>
 
 
 =head2 C<verify>
@@ -230,7 +232,7 @@ B<This method is experimental and can change without warning!>
   );
 
 Verifies a signed envelope against a bunch of given public MagicKeys.
-Returns true on success. In other case false.
+Returns a C<true> value on success, otherwise C<false>.
 
 If one key succeeds, the envelope is verified and
 the method returns a C<true> value, otherwise
@@ -239,24 +241,27 @@ it returns C<false>.
 An element can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
 L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
-containing the non-generation parameters accepted by
-L<Crypt::MagicSignatures::Key> C<new>.
-
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
-I<(This is implemented for compatibility with non-standard implementations)>.
+containing the non-generation parameters accepted by the
+L<Crypt::MagicSignatures::Key> constructor.
 
 For referring to a certain key, an array reference
-can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended, refering to the data to be verified. Conforming with the specification the default value is C<-base>. C<-data> will verify the data only, C<-compatible> will first try to verify the base string and then will verify the data on failure
+can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended,
+referring to the data to be verified.
+Conforming with the specification the default value is C<-base>.
+C<-data> will verify the data only, C<-compatible> will first try to verify the base string and then will verify the data on failure
 I<(This is implemented for compatibility with non-standard implementations)>.
 
-B<This method is experimental and can change without warning!>
+B<This method is experimental and may change without warning!>
 
 
 =head2 C<to_xml>
 
-  $me->to_xml;
+  my $xml_string = $me->to_xml;
+  my $xml_provenance_string = $me->to_xml(1);
 
 Returns the MagicEnvelope as a stringified xml representation.
+If a C<true> value is passed, a provenance fragment will be returned instead
+of a valid xml document.
 
 
 =head2 C<to_json>
@@ -270,7 +275,8 @@ Returns the MagicEnvelope as a stringified json representation.
 
   $me->to_compact;
 
-Returns the MagicEnvelope as a compact representation.
+Returns the MagicEnvelope as a compact representation as described in the
+L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
 
 
 =head1 DEPENDENCIES
@@ -281,7 +287,11 @@ L<Mojolicious>.
 
 =head1 KNOWN BUGS AND LIMITATIONS
 
-The signature is currently not working correctly!
+The signing and verifification is not guaranteed to be
+compatible with other implementations!
+Implementations like StatusNet (Identi.ca), MiniMe, and examples from the
+reference implementation are tested.
+See the test suite for further information.
 
 
 =head1 AVAILABILITY
