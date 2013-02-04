@@ -590,22 +590,34 @@ Crypt::MagicSignatures::Envelope - MagicEnvelopes for the Salmon Protocol
 
 =head1 SYNOPSIS
 
+  use Crypt::MagicSignatures::Key;
   use Crypt::MagicSignatures::Envelope;
 
-  my $me = Crypt::MagicSignatures::Envelope->new({
+  # Create a new MagicKey for signing messages
+  my $mkey = Crypt::MagicSignatures::Key->new(size => 1024);
+
+  # Fold a new envelope
+  my $me = Crypt::MagicSignatures::Envelope->new(
     data => 'Some arbitrary string.'
-  });
+  );
 
-  $me->sign('key-01' => 'RSA.vsd...');
+  # Sign magic envelope
+  $me->sign($mkey);
 
-  if ($me->verify('RSA.vsd...')) {
+  # Extract the public key
+  my $mkey_public = $mkey->to_string;
+
+  # Verify the signature of the envelope
+  if ($me->verify($mkey_public)) {
     print 'Signature is verified!';
   };
+
 
 =head1 DESCRIPTION
 
 L<Crypt::MagicSignatures::Envelope> implements MagicEnvelopes with MagicSignatures as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html> to sign messages of the L<Salmon Protocol|http://www.salmon-protocol.org/>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>
+to sign messages of the L<Salmon Protocol|http://www.salmon-protocol.org/>.
 MagicSignatures is a I<"robust mechanism for digitally signing nearly arbitrary messages">.
 
 B<This module is an early release! There may be significant changes in the future.>
@@ -640,6 +652,7 @@ Defaults to C<text/plain>.
 
 =head2 dom
 
+  Fold an xml message
   my $me = Crypt::MagicSignatures::Envelope->new( data => <<'XML' );
   <?xml version='1.0' encoding='UTF-8'?>
   <entry xmlns='http://www.w3.org/2005/Atom'>
@@ -647,10 +660,11 @@ Defaults to C<text/plain>.
   </entry>
   XML
 
+  # Define an xml mime type
   $me->data_type('application/atom+xml');
 
-  # alice@example.com
   print $me->dom->at('author > uri')->text;
+  # alice@example.com
 
 The L<Mojo::DOM> object of the decoded data,
 if the MagicEnvelope contains XML.
@@ -686,8 +700,8 @@ If no matching signature is found, a C<false> value is returned.
 
   my $base = $me->signature_base;
 
-The signature base string of the MagicEnvelope as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#sbs>.
+The L<signature base string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#sbs>
+of the MagicEnvelope.
 
 
 =head2 signed
@@ -732,16 +746,14 @@ MagicEnvelope was signed with this specific key.
   MEXML
 
 The constructor accepts MagicEnvelope data in various formats.
-It accepts MagicEnvelopes in the XML format or an
-XML document including a MagicEnvelope C<provenance> element
-as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>.
+It accepts MagicEnvelopes in the L<XML format|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>
+or an XML document including a
+L<MagicEnvelope provenance|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor7> element.
 
-Additionally it accepts MagicEnvelopes in the JSON notation
+Additionally it accepts MagicEnvelopes in the
+L<JSON notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>
 or defined by the same attributes as the JSON notation
-(but with the data not encoded)
-as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
+(but with the data not encoded).
 The latter is the common way to fold new envelopes.
 
   $me = Crypt::MagicSignatures::Envelope->new(<<'MEJSON');
@@ -771,9 +783,8 @@ The latter is the common way to fold new envelopes.
     ]
   );
 
-Finally the constructor accepts MagicEnvelopes in the compact
-MagicEnvelope notation as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
+Finally the constructor accepts MagicEnvelopes in the
+L<compact notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
 
   $me = Crypt::MagicSignatures::Envelope->new(<<'MECOMPACT');
     bXktMDE=.S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVlu
@@ -791,7 +802,7 @@ L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/
      ->sign('RSA.hgfrhvb ...', -data)
      ->sign('key-02' => 'RSA.hgfrhvb ...', -data);
 
-  my $mkey = Crypt::MagicSignatures::Key->new('RSA.hgfrhvb ...')
+  my $mkey = Crypt::MagicSignatures::Key->new('RSA.hgfrhvb ...');
   $me->sign($mkey);
 
 Adds a signature to the MagicEnvelope.
@@ -799,13 +810,13 @@ Adds a signature to the MagicEnvelope.
 For adding a signature, the private key with an optional prepended
 key id has to be given.
 The private key can be a L<Crypt::MagicSignatures::Key> object,
-a MagicKey string as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hash reference
+a L<compact MagicKey string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1>
+or a hash reference
 containing the non-generation parameters accepted by the
 L<Crypt::MagicSignatures::Key> constructor.
 Optionally a flag C<-data> can be passed,
-that will sign the data payload instead of the signature base string as defined in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
+that will sign the data payload instead of the
+L<signature base string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
 I<(this is implemented for compatibility with non-standard implementations)>.
 
 On success, the method returns the MagicEnvelope,
@@ -818,7 +829,7 @@ B<This method is experimental and may change without warning!>
 
 =head2 verify
 
-  my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
+  my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' );
 
   $me->verify(
     'RSA.vsd...',
@@ -832,17 +843,21 @@ Returns a C<true> value on success, otherwise C<false>.
 If one key succeeds, the envelope is verified.
 
 An element can be a L<Crypt::MagicSignatures::Key> object,
-a MagicKey string as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hash reference
+a L<compact MagicKey string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1>
+or a hash reference
 containing the non-generation parameters accepted by the
 L<Crypt::MagicSignatures::Key> constructor.
 
 For referring to a certain key, an array reference
-can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended,
+can be passed, containing the key (defined as described above)
+with an optional prepended key id and an optional flag appended,
 referring to the data to be verified.
 Conforming with the specification the default value is C<-base>,
-referring to the base signature string of the MagicEnvelope.
-C<-data> will verify against the data only, C<-compatible> will first try to verify against the base signature string and then will verify against the data on failure
+referring to the
+L<signature base string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
+of the MagicEnvelope.
+C<-data> will verify against the data only, C<-compatible> will first try to
+verify against the base signature string and then will verify against the data on failure
 I<(this is implemented for compatibility with non-standard implementations)>.
 
 B<This method is experimental and may change without warning!>
@@ -852,16 +867,16 @@ B<This method is experimental and may change without warning!>
 
   my $compact_string = $me->to_compact;
 
-Returns the MagicEnvelope in compact notation as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
+Returns the MagicEnvelope in
+L<compact notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
 
 
 =head2 to_json
 
   my $json_string = $me->to_json;
 
-Returns the MagicEnvelope as a stringified json representation as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
+Returns the MagicEnvelope as a stringified
+L<json representation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
 
 
 =head2 to_xml
@@ -869,8 +884,8 @@ L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/
   my $xml_string = $me->to_xml;
   my $xml_provenance_string = $me->to_xml(1);
 
-Returns the MagicEnvelope as a stringified xml representation as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>.
+Returns the MagicEnvelope as a stringified
+L<xml representation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>.
 If a C<true> value is passed, a provenance fragment will be returned instead
 of a valid xml document.
 
