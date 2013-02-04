@@ -41,7 +41,7 @@ ok(my $mkey = Crypt::MagicSignatures::Key->new(<<'MKEY'), 'Key Constructor');
 RSA.mVgY8RN6URBTstndvmUUPb4UZTdwvwmddSKE5z_jvKUEK6yk1u3rrC9yN8k6FilGj9K0eeUPe2hf4Pj-5CmHww==.AQAB.Lgy_yL3hsLBngkFdDw1Jy9TmSRMiH6yihYetQ8jy-jZXdsZXd8V5ub3kuBHHk4M39i3TduIkcrjcsiWQb77D8Q==
 MKEY
 
-is($me->sig_base,
+is($me->signature_base,
    'PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0nVVRGLTgnPz4KPGVudHJ5IHh'.
    'tbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDA1L0F0b20nPgogIDxpZD50YWc6ZX'.
    'hhbXBsZS5jb20sMjAwOTpjbXQtMC40NDc3NTcxODwvaWQ-CiAgPGF1dGhvcj48b'.

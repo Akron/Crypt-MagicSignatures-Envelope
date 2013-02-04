@@ -34,7 +34,7 @@ my $me = Crypt::MagicSignatures::Envelope->new(
   data_type => 'text/plain'
 );
 
-is($me->sig_base,
+is($me->signature_base,
    'U29tZSBhcmJpdHJhcnkgc3RyaW5nLg.'.
    'dGV4dC9wbGFpbg==.'.
    'YmFzZTY0dXJs.'.

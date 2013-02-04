@@ -19,7 +19,7 @@ WriteMakefile(
       requires  => {perl => '5.010001'},
       resources => {
 	license     => 'http://www.opensource.org/licenses/artistic-license-2.0',
-	repository  => 'https://github.com/Akron/Crypt-MagicSignatures-Key'
+	repository  => 'https://github.com/Akron/Crypt-MagicSignatures-Envelope'
       }
     },
     test => {TESTS => 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t'}
