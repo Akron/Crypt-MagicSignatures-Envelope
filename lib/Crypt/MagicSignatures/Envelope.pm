@@ -6,7 +6,7 @@ use Carp qw/carp croak/;
 use Mojo::DOM;
 use Mojo::JSON;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';
@@ -613,7 +613,7 @@ B<This module is an early release! There may be significant changes in the futur
 
 =head1 ATTRIBUTES
 
-=head2 C<alg>
+=head2 alg
 
   my $alg = $me->alg;
 
@@ -621,7 +621,7 @@ The algorithm used for signing the MagicEnvelope.
 Defaults to C<RSA-SHA256>, which is the only supported algorithm.
 
 
-=head2 C<data>
+=head2 data
 
   my $data = $me->data;
   $me->data('Hello world!');
@@ -629,7 +629,7 @@ Defaults to C<RSA-SHA256>, which is the only supported algorithm.
 The decoded data folded in the MagicEnvelope.
 
 
-=head2 C<data_type>
+=head2 data_type
 
   my $data_type = $me->data_type;
   $me->data_type('text/plain');
@@ -638,7 +638,7 @@ The mime type of the data folded in the MagicEnvelope.
 Defaults to C<text/plain>.
 
 
-=head2 C<dom>
+=head2 dom
 
   my $me = Crypt::MagicSignatures::Envelope->new( data => <<'XML' );
   <?xml version='1.0' encoding='UTF-8'?>
@@ -658,7 +658,7 @@ if the MagicEnvelope contains XML.
 B<This attribute is experimental and may change without warning!>
 
 
-=head2 C<encoding>
+=head2 encoding
 
   my $encoding = $me->encoding;
 
@@ -666,7 +666,7 @@ The encoding of the MagicEnvelope.
 Defaults to C<base64url>, which is the only encoding supported.
 
 
-=head2 C<signature>
+=head2 signature
 
   my $sig = $me->signature;
   my $sig = $me->signature('key-01');
@@ -682,7 +682,7 @@ and possibly a C<key_id>.
 If no matching signature is found, a C<false> value is returned.
 
 
-=head2 C<signature_base>
+=head2 signature_base
 
   my $base = $me->signature_base;
 
@@ -690,7 +690,7 @@ The signature base string of the MagicEnvelope as described in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#sbs>.
 
 
-=head2 C<signed>
+=head2 signed
 
   # With key id
   if ($me->signed('key-01')) {
@@ -714,7 +714,7 @@ MagicEnvelope was signed with this specific key.
 =head1 METHODS
 
 
-=head2 C<new>
+=head2 new
 
   $me = Crypt::MagicSignatures::Envelope->new(<<'MEXML');
   <?xml version="1.0" encoding="UTF-8"?>
@@ -784,7 +784,7 @@ L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/
   MECOMPACT
 
 
-=head2 C<sign>
+=head2 sign
 
   $me->sign('key-01' => 'RSA.hgfrhvb ...')
      ->sign('RSA.hgfrhvb ...')
@@ -816,7 +816,7 @@ A MagicEnvelope can be signed multiple times.
 B<This method is experimental and may change without warning!>
 
 
-=head2 C<verify>
+=head2 verify
 
   my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
 
@@ -848,7 +848,7 @@ I<(this is implemented for compatibility with non-standard implementations)>.
 B<This method is experimental and may change without warning!>
 
 
-=head2 C<to_compact>
+=head2 to_compact
 
   my $compact_string = $me->to_compact;
 
@@ -856,7 +856,7 @@ Returns the MagicEnvelope in compact notation as described in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
 
 
-=head2 C<to_json>
+=head2 to_json
 
   my $json_string = $me->to_json;
 
@@ -864,7 +864,7 @@ Returns the MagicEnvelope as a stringified json representation as described in t
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
 
 
-=head2 C<to_xml>
+=head2 to_xml
 
   my $xml_string = $me->to_xml;
   my $xml_provenance_string = $me->to_xml(1);
