@@ -806,7 +806,7 @@ L<Crypt::MagicSignatures::Key> constructor.
 Optionally a flag C<-data> can be passed,
 that will sign the data payload instead of the signature base string as defined in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
-I<(This is implemented for compatibility with non-standard implementations)>.
+I<(this is implemented for compatibility with non-standard implementations)>.
 
 On success, the method returns the MagicEnvelope,
 otherwise it returns a C<false> value.
@@ -821,9 +821,9 @@ B<This method is experimental and may change without warning!>
   my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
 
   $me->verify(
-    'RSA...',
+    'RSA.vsd...',
     $mkey,
-    ['key-01' => 'RSA...', -data]
+    ['key-01' => 'RSA.hgfrhvb...', -data]
   );
 
 Verifies a signed envelope against a bunch of given public MagicKeys.
@@ -843,7 +843,7 @@ referring to the data to be verified.
 Conforming with the specification the default value is C<-base>,
 referring to the base signature string of the MagicEnvelope.
 C<-data> will verify against the data only, C<-compatible> will first try to verify against the base signature string and then will verify against the data on failure
-I<(This is implemented for compatibility with non-standard implementations)>.
+I<(this is implemented for compatibility with non-standard implementations)>.
 
 B<This method is experimental and may change without warning!>
 
@@ -885,7 +885,7 @@ L<Mojolicious>.
 
 The signing and verifification is not guaranteed to be
 compatible with other implementations!
-Implementations like L<StatusNet|http://status.net/> (L<Identi.ca|http://identi.ca/),
+Implementations like L<StatusNet|http://status.net/> (L<Identi.ca|http://identi.ca/>),
 L<MiniMe|https://code.google.com/p/minime-microblogger/>, and examples from the
 L<reference implementation|https://code.google.com/p/salmon-protocol/source/browse/> are tested.
 
