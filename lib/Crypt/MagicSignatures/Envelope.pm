@@ -586,7 +586,7 @@ __END__
 
 =head1 NAME
 
-Crypt::MagicSignatures::Envelope - Envelope class for MagicSignatures
+Crypt::MagicSignatures::Envelope - MagicEnvelopes for the Salmon Protocol
 
 =head1 SYNOPSIS
 
@@ -604,9 +604,9 @@ Crypt::MagicSignatures::Envelope - Envelope class for MagicSignatures
 
 =head1 DESCRIPTION
 
-L<Crypt::MagicSignatures::Envelope> helps to sign and verify MagicEnvelopes with MagicSignatures as described in the
-L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
-MagicSignature is a I<"robust mechanism for digitally signing nearly arbitrary messages">.
+L<Crypt::MagicSignatures::Envelope> implements MagicEnvelopes with MagicSignatures as described in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html> to sign messages of the L<Salmon Protocol|http://www.salmon-protocol.org/>.
+MagicSignatures is a I<"robust mechanism for digitally signing nearly arbitrary messages">.
 
 B<This module is an early release! There may be significant changes in the future.>
 
@@ -689,7 +689,7 @@ B<This attribute is experimental and may change without warning!>
   my $base = $me->signature_base;
 
 The signature base string of the MagicEnvelope as described in the
-L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
 
 
 =head2 C<signed>
@@ -773,7 +773,7 @@ The latter is the common way to fold new envelopes.
 
 Finally the constructor accepts MagicEnvelopes in the compact
 MagicEnvelope notation as described in the
-L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
 
   $me = Crypt::MagicSignatures::Envelope->new(<<'MECOMPACT');
     bXktMDE=.S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVlu
@@ -855,7 +855,7 @@ B<This method is experimental and may change without warning!>
   my $compact_string = $me->to_compact;
 
 Returns the MagicEnvelope in compact notation as described in the
-L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
 
 
 =head2 C<to_json>
