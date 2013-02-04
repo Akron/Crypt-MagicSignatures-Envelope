@@ -18,51 +18,68 @@ sub new {
 
   my $self;
 
-  # Bless object as parent class
+  # Bless object with parameters
   if (@_ > 1 && !(@_ % 2)) {
 
     my %self = @_;
 
+    # Given algorithm is wrong
     if ($self{alg} && uc($self{alg}) ne 'RSA-SHA256') {
-      carp 'Wrong encoding' and return;
+      carp 'Algorithm is not supported' and return;
     };
 
+    # Given encoding is wrong
     if ($self{encoding} &&
 	  lc($self{encoding}) ne 'base64url') {
-      carp 'Wrong encoding' and return;
+      carp 'Encoding is not supported' and return;
     };
 
+    # No payload is given
     unless (defined $self{data}) {
       carp 'No data payload defined' and return;
     };
 
+    # Create object
     $self = bless {}, $class;
 
+    # Set data
     $self->data(delete $self{data});
 
+    # Set data type if defined
     $self->data_type(delete $self{data_type})
       if $self{data_type};
 
+    # Append all defined signatures
     foreach (@{$self{sigs}}) {
+
+      # No value is given
       next unless $_->{value};
 
+      # Create new array reference if not already existing
       $self->{sigs} //= [];
 
+      # Start new signature value
       my %sig = ( value => $_->{value} );
       $sig{key_id} = $_->{key_id} if exists $_->{key_id};
 
+      # Add signature to signature array
       push(@{$self->{sigs}}, \%sig);
     };
 
+    # The envelope is signed
     $self->{signed} = 1 if $self->{sigs}->[0];
   }
 
+  # Envelope is defined as a string
   else {
+
+    # Construct object
     $self = bless {}, $class;
 
     # Message is me-xml
     if ($_[0] =~ /^[\s\t\n]*\</) {
 
+      # Parse xml string
       my $dom = Mojo::DOM->new(xml => 1);
       $dom->parse( shift );
 
@@ -74,22 +91,25 @@ sub new {
       # Retrieve and edit data
       my $data = $env->at('data');
 
-      # Envelope empty
+      # The envelope is empty
       return unless $data;
 
+      # Add data type if given
       $self->data_type( $data->attrs->{type} ) if $data->attrs->{type};
+
+      # Add decoded data
       $self->data( b64url_decode( $data->text ) );
 
       # Check algorithm
       if ($env->at('alg') &&
 	    ($env->at('alg')->text ne 'RSA-SHA256')) {
-	carp 'Algorithm currently not supported' and return;
+	carp 'Algorithm is not supported' and return;
       };
 
       # Check encoding
       if ($env->at('encoding') &&
 	    ($env->at('encoding')->text ne 'base64url')) {
-	carp 'Encoding currently not supported' and return;
+	carp 'Encoding is not supported' and return;
       };
 
       # Find signatures
@@ -221,12 +241,13 @@ sub sign {
 
   return unless @_;
 
+  # Get key and signature information
   my ($key_id, $mkey, $flag) = _key_array(@_);
 
+  # Choose data to sign
   my $data = $flag eq '-data' ?
     b64url_encode($self->data) :
       $self->sig_base;
-
 
   # Todo: Regarding key id:
   # "If the signer does not maintain individual key_ids,
@@ -301,10 +322,6 @@ sub verify {
 	# Verify with b64url data
 	$verified = $mkey->verify(b64url_encode($self->data) => $sig->{value});
 	last if $verified;
-
-	# Verify with b64url data
-	# $verified = $mkey->verify(b64url_encode($self->data, 0) => $sig->{value});
-	# last if $verified;
       };
     };
   };
@@ -429,35 +446,44 @@ sub dom {
 # Return em-xml string
 sub to_xml {
   my $self = shift;
-
   my $embed = shift;
 
   my $xml = '';
 
   my $start_tag = 'env';
+
+  # Is a provenance me
   if ($embed) {
     $start_tag = 'provenance';
   }
 
+  # Is a full document
   else {
     $xml = qq{<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n};
   };
 
+  # Start document
   $xml .= qq{<me:$start_tag xmlns:me="http://salmon-protocol.org/ns/magic-env">\n};
 
+  # Data payload
   $xml .= '  <me:data';
   $xml .= ' type="' . $self->data_type . '"' if exists $self->{data_type};
   $xml .= ">" . b64url_encode($self->data, 0) . "</me:data>\n";
 
+  # Encoding
   $xml .= '  <me:encoding>' . $self->encoding . "</me:encoding>\n";
+
+  # Algorithm
   $xml .= '  <me:alg>' . $self->alg . "</me:alg>\n";
 
+  # Signatures
   foreach my $sig (@{$self->{sigs}}) {
     $xml .= '  <me:sig';
     $xml .= ' key_id="' . $sig->{key_id} . '"' if $sig->{key_id};
     $xml .= '>' . b64url_encode($sig->{value}) . "</me:sig>\n"
   };
 
+  # End document
   $xml .= "</me:$start_tag>";
 
   return $xml;
@@ -474,10 +500,13 @@ sub to_compact {
   # Use default signature for serialization
   my $sig = $self->signature;
 
-  return join( '.',
-	       b64url_encode( $sig->{key_id} ) || '',
-	       b64url_encode( $sig->{value} ),
-	       $self->sig_base );
+  return
+    join(
+      '.',
+      b64url_encode( $sig->{key_id} ) || '',
+      b64url_encode( $sig->{value} ),
+      $self->sig_base
+    );
 };
 
 
@@ -575,6 +604,9 @@ Crypt::MagicSignatures::Envelope - Envelope class for MagicSignatures
 
 L<Crypt::MagicSignatures::Envelope> helps to sign and verify MagicEnvelopes with MagicSignatures as described in the
 L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+MagicSignatures is a I<"robust mechanism for digitally signing nearly arbitrary messages">.
+
+B<This module is an early release! There may be significant changes in the future.>
 
 
 =head1 ATTRIBUTES
@@ -611,7 +643,7 @@ Defaults to C<text/plain>.
 The L<Mojo::DOM> object of the decoded data,
 if the magic envelope contains XML.
 
-B<This attribute is experimental and can change without warning!>
+B<This attribute is experimental and may change without warning!>
 
 
 =head2 C<encoding>
@@ -629,7 +661,7 @@ Defaults to C<base64url>, which is the only encoding supported.
 The signature base of the MagicEnvelope.
 
 
-=head2 <signature>
+=head2 C<signature>
 
   my $sig = $me->signature('key-01');
   my $sig = $me->signature;
@@ -644,7 +676,7 @@ containing b64url encoded data for C<value>
 and possibly C<key_id>.
 If no matching signature is found, false is returned.
 
-B<This attribute is experimental and can change without warning!>
+B<This attribute is experimental and may change without warning!>
 
 
 =head2 C<signed>
@@ -663,7 +695,7 @@ Returns a C<true> value in case the MagicEnvelope is signed at least once.
 Accepts optionally a C<key_id> and returns true, if the
 MagicEnvelope was signed with this specific key.
 
-B<This attribute is experimental and can change without warning!>
+B<This attribute is experimental and may change without warning!>
 
 
 =head1 METHODS
@@ -758,20 +790,19 @@ key id has to be given.
 The private key can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
 L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
-containing the non-generation parameters accepted by
-L<Crypt::MagicSignatures::Key> C<new>.
-
+containing the non-generation parameters accepted by the
+L<Crypt::MagicSignatures::Key> constructor.
 Optionally a flag C<-data> can be passed,
-that won't sign the base string as defined in the
+that will sign the data payload instead of the base string as defined in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
 I<(This is implemented for compatibility with non-standard implementations)>.
 
 On success, the method returns the MagicEnvelope,
-otherwise it returns a false value.
+otherwise it returns a C<false> value.
 
 A MagicEnvelope can be signed multiple times.
 
-B<This method is experimental and can change without warning!>
+B<This method is experimental and may change without warning!>
 
 
 =head2 C<verify>
@@ -783,7 +814,7 @@ B<This method is experimental and can change without warning!>
   );
 
 Verifies a signed envelope against a bunch of given public MagicKeys.
-Returns true on success. In other case false.
+Returns a C<true> value on success, otherwise C<false>.
 
 If one key succeeds, the envelope is verified and
 the method returns a C<true> value, otherwise
@@ -792,24 +823,27 @@ it returns C<false>.
 An element can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
 L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
-containing the non-generation parameters accepted by
-L<Crypt::MagicSignatures::Key> C<new>.
-
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
-I<(This is implemented for compatibility with non-standard implementations)>.
+containing the non-generation parameters accepted by the
+L<Crypt::MagicSignatures::Key> constructor.
 
 For referring to a certain key, an array reference
-can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended, refering to the data to be verified. Conforming with the specification the default value is C<-base>. C<-data> will verify the data only, C<-compatible> will first try to verify the base string and then will verify the data on failure
+can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended,
+referring to the data to be verified.
+Conforming with the specification the default value is C<-base>.
+C<-data> will verify the data only, C<-compatible> will first try to verify the base string and then will verify the data on failure
 I<(This is implemented for compatibility with non-standard implementations)>.
 
-B<This method is experimental and can change without warning!>
+B<This method is experimental and may change without warning!>
 
 
 =head2 C<to_xml>
 
-  $me->to_xml;
+  my $xml_string = $me->to_xml;
+  my $xml_provenance_string = $me->to_xml(1);
 
 Returns the MagicEnvelope as a stringified xml representation.
+If a C<true> value is passed, a provenance fragment will be returned instead
+of a valid xml document.
 
 
 =head2 C<to_json>
@@ -823,7 +857,8 @@ Returns the MagicEnvelope as a stringified json representation.
 
   $me->to_compact;
 
-Returns the MagicEnvelope as a compact representation.
+Returns the MagicEnvelope as a compact representation as described in the
+L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
 
 
 =head1 DEPENDENCIES
@@ -834,7 +869,11 @@ L<Mojolicious>.
 
 =head1 KNOWN BUGS AND LIMITATIONS
 
-The signature is currently not working correctly!
+The signing and verifification is not guaranteed to be
+compatible with other implementations!
+Implementations like StatusNet (Identi.ca), MiniMe, and examples from the
+reference implementation are tested.
+See the test suite for further information.
 
 
 =head1 AVAILABILITY
