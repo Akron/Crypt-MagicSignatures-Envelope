@@ -8,8 +8,9 @@ use lib '../lib';
 
 our $module;
 BEGIN {
-    our $module = 'Crypt::MagicSignatures::Key';
-    use_ok($module, qw/b64url_encode b64url_decode/);   # 1
+  our $module = 'Crypt::MagicSignatures::Key';
+  use_ok($module, qw/b64url_encode b64url_decode/);   # 1
+  use_ok('Crypt::MagicSignatures::Envelope');
 };
 
 # From Minime as well # Is it really???
@@ -27,12 +28,22 @@ my $sig =<<'IDENTICASIG';
 FdN0qsIYyc_WtNCca0KMQx2YesT4jfNULkH5wMF6uJE1dwd74_2xEh559xAvnB-siPcdDbZAUb84z7hFSbtEBfbcYmM7PZAfZQFXHM-aXomqx0mXjRnRM2YKxO6l3FCd_enErW2q8E-hDE24FACdEK6LzbJnXFoRxMCYsW8l_jA=
 IDENTICASIG
 
-diag b64url_decode($data);
+tr{\t-\x0d }{}d for $data, $sig;
 
-diag '**' . $mkey->verify(b64url_decode($data), $sig) . '**';
+
+ok(my $me = Crypt::MagicSignatures::Envelope->new(
+  '{
+    "data" : "'.$data .'",
+    "data_type" : "application\/atom+xml",
+    "sigs" : [{ "value" : "'.$sig.'" }]
+  }'), 'ME Constructor');
+
+ok($me->verify([$mkey, -compatible]), 'Verification compatible');
+
+ok($me->verify([$mkey, -data]), 'Verification data');
+
+ok(!$me->verify($mkey), 'Verification base fail');
 
 done_testing;
 
 __END__
-
-done_testing;

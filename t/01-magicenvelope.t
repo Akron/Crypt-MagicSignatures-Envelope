@@ -98,23 +98,13 @@ ok($me->sign(my_key => $mkey), 'Sign me');
 
 ok($me->verify($mkey->to_string), 'Verify me');
 
-ok($me->sign_data(my_second_key => $mkey), 'Sign me data');
+ok($me->sign(my_second_key => $mkey, -data), 'Sign me data');
 
-ok($me->verify({
-  key_id => 'my_second_key',
-  value => $mkey->to_string,
-  verify => 'data'
-}), 'Verify me data');
+ok($me->verify([my_second_key => $mkey->to_string, -data]), 'Verify me data');
 
-ok(!$me->verify({
-  key_id => 'my_second_key',
-  value => $mkey->to_string}
-	      ),
-   'Verify me data (fail)');
-
-# diag $me->to_xml;
-
-
-# $mkey->to_string;
+ok(!$me->verify([my_second_key => $mkey->to_string]), 'Verify me base (fail)');
 
 done_testing;
+
+__END__
+

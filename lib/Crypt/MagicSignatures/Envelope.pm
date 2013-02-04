@@ -1,16 +1,12 @@
 package Crypt::MagicSignatures::Envelope;
+use strict;
+use warnings;
 use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
 use Carp qw/carp croak/;
-use Mojo::Base -base;
 use Mojo::DOM;
 use Mojo::JSON;
 
 our $VERSION = '0.01';
-
-has 'data';
-has alg       => 'RSA-SHA256';
-has encoding  => 'base64url';
-has data_type => 'text/plain';
 
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';
@@ -24,11 +20,45 @@ sub new {
 
   # Bless object as parent class
   if (@_ > 1 && !(@_ % 2)) {
-    $self = $class->SUPER::new(@_);
+
+    my %self = @_;
+
+    if ($self{alg} && uc($self{alg}) ne 'RSA-SHA256') {
+      carp 'Wrong encoding' and return;
+    };
+
+    if ($self{encoding} &&
+	  lc($self{encoding}) ne 'base64url') {
+      carp 'Wrong encoding' and return;
+    };
+
+    unless (defined $self{data}) {
+      carp 'No data payload defined' and return;
+    };
+
+    $self = bless {}, $class;
+
+    $self->data(delete $self{data});
+
+    $self->data_type(delete $self{data_type})
+      if $self{data_type};
+
+    foreach (@{$self{sigs}}) {
+      next unless $_->{value};
+
+      $self->{sigs} //= [];
+
+      my %sig = ( value => $_->{value} );
+      $sig{key_id} = $_->{key_id} if exists $_->{key_id};
+
+      push(@{$self->{sigs}}, \%sig);
+    };
+
+    $self->{signed} = 1 if $self->{sigs}->[0];
   }
 
   else {
-    $self = $class->SUPER::new;
+    $self = bless {}, $class;
 
     # Message is me-xml
     if ($_[0] =~ /^[\s\t\n]*\</) {
@@ -155,26 +185,48 @@ sub new {
 };
 
 
+# Signature algorithm
+sub alg { 'RSA-SHA256' };
+
+
+# Encoding of the MagicEnvelope
+sub encoding { 'base64url' };
+
+
+# Data of the MagicEnvelope
+sub data {
+  unless (defined $_[1]) {
+    return shift->{data} // '';
+  };
+  my $self = shift;
+  delete $self->{sig_base};
+  return ($self->{data} = join ' ', map { $_ } @_);
+};
+
+
+# Datatype of the MagicEnvelope's content
+sub data_type {
+  unless (defined $_[1]) {
+    return shift->{data_type} // 'text/plain';
+  };
+  my $self = shift;
+  delete $self->{sig_base};
+  return ($self->{data_type} = shift);
+};
+
+
 # Sign magic envelope instance following the spec
 sub sign {
   my $self = shift;
-  return $self->_sign($self->sig_base, @_);
-};
 
+  return unless @_;
 
-# Sign the data of the magic envelope
-sub sign_data {
-  my $self = shift;
-  return $self->_sign(b64url_encode($self->data), @_);
-};
+  my ($key_id, $mkey, $flag) = _key_array(@_);
 
+  my $data = $flag eq '-data' ?
+    b64url_encode($self->data) :
+      $self->sig_base;
 
-# Sign magic envelope instance
-sub _sign {
-  my $self = shift;
-  my $data = shift;
-  my $key  = pop;
-  my $key_id = shift;
 
   # Todo: Regarding key id:
   # "If the signer does not maintain individual key_ids,
@@ -183,15 +235,10 @@ sub _sign {
   #  representation."
 
   # A valid key is given
-  if ($key) {
-
-    # Create MagicKey from parameter
-    my $mkey = Crypt::MagicSignatures::Key->new(
-      ( ref $key && $key eq 'HASH' ? %{ $key } : $key )
-    );
+  if ($mkey) {
 
     # No valid private key
-    return undef unless ($mkey && $mkey->d);
+    return undef unless $mkey->d;
 
     # Compute signature for base string
     my $msig = $mkey->sign( $data );
@@ -227,49 +274,37 @@ sub verify {
   #  of the SHA-256 hash of public key's application/magic-key
   #  representation."
 
-  # No sig base - MagicEnvelope is invalid
-  return unless $self->sig_base;
+  return unless $self->signed;
 
   my $verified = 0;
+  foreach (@_) {
 
-  foreach my $key (@_) {
-
-    my $verify = 'sig_base';
-    my $key_id = undef;
-
-    if (ref $key) {
-      if (ref $key eq 'HASH') {
-	$key_id = delete $key->{key_id};
-	$verify = delete $key->{verify} if $key->{verify};
-	$key = delete $key->{value};
-	next unless $key;
-      };
-    };
-
-    my $mkey = Crypt::MagicSignatures::Key->new($key);
+    my ($key_id, $mkey, $flag) = _key_array(
+      ref $_ && ref $_ eq 'ARRAY' ? @$_ : $_
+    );
 
     next unless $mkey;
 
-    # Get without key id
+    # Get signature
     my $sig = $self->signature($key_id);
 
     # Found key/sig pair
     if ($sig) {
 
-      if ($verify ne 'data') {
+      if ($flag ne '-data') {
 	$verified = $mkey->verify($self->sig_base => $sig->{value});
 	last if $verified;
       };
 
-      if ($verify ~~ [qw/data compatible/]) {
+      if ($flag ~~ [qw/-data -compatible/]) {
 
 	# Verify with b64url data
 	$verified = $mkey->verify(b64url_encode($self->data) => $sig->{value});
 	last if $verified;
 
 	# Verify with b64url data
-	$verified = $mkey->verify(b64url_encode($self->data, 0) => $sig->{value});
-	last if $verified;
+	# $verified = $mkey->verify(b64url_encode($self->data, 0) => $sig->{value});
+	# last if $verified;
       };
     };
   };
@@ -357,12 +392,13 @@ sub sig_base {
   # Already computed
   return $self->{sig_base} if $self->{sig_base};
 
-  $self->{sig_base} = join('.',
-			   b64url_encode( $self->data, 0 ),
-			   b64url_encode( $self->data_type ),
-			   b64url_encode( $self->encoding ),
-			   b64url_encode( $self->alg )
-			 );
+  $self->{sig_base} =
+    join('.',
+	 b64url_encode( $self->data, 0 ),
+	 b64url_encode( $self->data_type ),
+	 b64url_encode( $self->encoding ),
+	 b64url_encode( $self->alg )
+       );
 
   unless ($self->{sig_base}) {
     carp 'Unable to construct sig_base.';
@@ -480,6 +516,36 @@ sub _trim {
   $string;
 };
 
+sub _key_array {
+  return () unless @_;
+
+  my $flag = $_[-1] ~~ [qw/-data -compatible -base/] ? pop : '-base';
+
+  my $key  = pop;
+  my $key_id = shift;
+
+  return () unless $key;
+
+  my @param;
+
+  # Hashref
+  if (ref $key && $key eq 'HASH') {
+    return () unless $key->{n};
+    @param = %$key;
+  }
+
+  # String or object
+  else {
+    @param = ($key);
+  };
+
+  # Create MagicKey from parameter
+  my $mkey = Crypt::MagicSignatures::Key->new(@param);
+
+  return ($key_id, $mkey, $flag);
+};
+
+
 1;
 
 
@@ -489,11 +555,11 @@ __END__
 
 =head1 NAME
 
-Crypt::MagicSignatures - Sign and verify MagicSignatures
+Crypt::MagicSignatures::Envelope - Envelope class for MagicSignatures
 
 =head1 SYNOPSIS
 
-  use Crypt::MagicSignatures;
+  use Crypt::MagicSignatures::Envelope;
 
   my $me = Crypt::MagicSignatures::Envelope->new({
     data => 'Some arbitrary string.'
@@ -501,11 +567,13 @@ Crypt::MagicSignatures - Sign and verify MagicSignatures
 
   $me->sign('key-01' => 'RSA.vsd...');
 
+  if ($me->verify('RSA.vsd...')) {
+    print 'Signature is verified!';
+  };
 
 =head1 DESCRIPTION
 
-L<Crypt::MagicSignatures> helps to verify and sign MagicEnvelopes
-with MagicSignatures as described in the
+L<Crypt::MagicSignatures::Envelope> helps to sign and verify MagicEnvelopes with MagicSignatures as described in the
 L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
 
 
@@ -514,7 +582,6 @@ L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/d
 =head2 C<alg>
 
   my $alg = $me->alg;
-  $me->alg('RSA-SHA256');
 
 The algorithm used for the folding of the MagicEnvelope.
 Defaults to C<RSA-SHA256>, which is the only supported algorithm.
@@ -550,7 +617,6 @@ B<This attribute is experimental and can change without warning!>
 =head2 C<encoding>
 
   my $encoding = $me->encoding;
-  $me->encoding('base64url');
 
 The encoding of the MagicEnvelope.
 Defaults to C<base64url>, which is the only encoding supported.
@@ -679,21 +745,26 @@ L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/d
 
   $me->sign( 'key-01' => 'RSA.hgfrhvb ...' )
      ->sign( 'RSA.hgfrhvb ...' )
-     ->sign( 'RSA.hgfrhvb ...', -data);
+     ->sign( 'RSA.hgfrhvb ...', -data)
+     ->sign( 'key-02' => 'RSA.hgfrhvb ...', -data);
 
   my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
   $me->sign( $mkey );
 
 Adds a signature to the MagicEnvelope.
 
-For adding a signature, the private key with an optional
+For adding a signature, the private key with an optional prepended
 key id has to be given.
-The private key can be a
-L<Crypt::MagicSignatures::Key> object,
+The private key can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
 L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
-containing the parameters accepted by
+containing the non-generation parameters accepted by
 L<Crypt::MagicSignatures::Key> C<new>.
+
+Optionally a flag C<-data> can be passed,
+that won't sign the base string as defined in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
+I<(This is implemented for compatibility with non-standard implementations)>.
 
 On success, the method returns the MagicEnvelope,
 otherwise it returns a false value.
@@ -703,47 +774,33 @@ A MagicEnvelope can be signed multiple times.
 B<This method is experimental and can change without warning!>
 
 
-=head2 C<sign_data>
-
-  $me->sign_data( 'key-01' => 'RSA.hgfrhvb ...' )
-     ->sign_data( 'RSA.hgfrhvb ...' );
-
-  my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
-  $me->sign_data( $mkey );
-
-Adds a signature to the MagicEnvelope.
-Other than C<sign>, this will sign the data instead of the
-base string as defined in the
-L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>.
-
-This is implemented for compatibility with non-standard implementations.
-
-
 =head2 C<verify>
 
   $me->verify(
     'RSA...',
-    {
-      key_id => 'key-01',
-      value => 'RSA...',
-      verify => 'data'
-    },
+    ['key-01' => 'RSA...', -data],
     'RSA...'
   );
 
 Verifies a signed envelope against a bunch of given public MagicKeys.
 Returns true on success. In other case false.
 
-If one key succeeds, the envelope is verified.
+If one key succeeds, the envelope is verified and
+the method returns a C<true> value, otherwise
+it returns C<false>.
 
-An element can be the MagicKey as a string or a
-L<Crypt::MagicSignatures::Key> object, or a hash reference,
-giving the MagicKey as a C<value>, referring to a certain C<key_id>
-and defining the data to C<verify>, either C<sig_base>, C<data> or C<compatible>.
-The default is C<sig_base>.
-C<sig_base> will verify the sign by the base string as defined in the
-L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>.
-C<data> will verify the sig using the data string, C<compatible> will try both.
+An element can be a L<Crypt::MagicSignatures::Key> object,
+a MagicKey string as described in the
+L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
+containing the non-generation parameters accepted by
+L<Crypt::MagicSignatures::Key> C<new>.
+
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
+I<(This is implemented for compatibility with non-standard implementations)>.
+
+For referring to a certain key, an array reference
+can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended, refering to the data to be verified. Conforming with the specification the default value is C<-base>. C<-data> will verify the data only, C<-compatible> will first try to verify the base string and then will verify the data on failure
+I<(This is implemented for compatibility with non-standard implementations)>.
 
 B<This method is experimental and can change without warning!>
 

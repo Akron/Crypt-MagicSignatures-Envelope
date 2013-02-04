@@ -1,0 +1,299 @@
+=pod
+
+=head1 NAME
+
+Crypt::MagicSignatures::Envelope - Envelope class for MagicSignatures
+
+=head1 SYNOPSIS
+
+  use Crypt::MagicSignatures::Envelope;
+
+  my $me = Crypt::MagicSignatures::Envelope->new({
+    data => 'Some arbitrary string.'
+  });
+
+  $me->sign('key-01' => 'RSA.vsd...');
+
+  if ($me->verify('RSA.vsd...')) {
+    print 'Signature is verified!';
+  };
+
+=head1 DESCRIPTION
+
+L<Crypt::MagicSignatures::Envelope> helps to sign and verify MagicEnvelopes with MagicSignatures as described in the
+L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+
+
+=head1 ATTRIBUTES
+
+=head2 C<alg>
+
+  my $alg = $me->alg;
+
+The algorithm used for the folding of the MagicEnvelope.
+Defaults to C<RSA-SHA256>, which is the only supported algorithm.
+
+
+=head2 C<data>
+
+  my $data = $me->data;
+  $me->data('Hello world!');
+
+The decoded data folded in the MagicEnvelope.
+
+
+=head2 C<data_type>
+
+  my $data_type = $me->data_type;
+  $me->data_type('text/plain');
+
+The mime type of the data folded in the MagicEnvelope.
+Defaults to C<text/plain>.
+
+
+=head2 C<dom>
+
+  my $dom = $me->dom;
+
+The L<Mojo::DOM> object of the decoded data,
+if the magic envelope contains XML.
+
+B<This attribute is experimental and can change without warning!>
+
+
+=head2 C<encoding>
+
+  my $encoding = $me->encoding;
+
+The encoding of the MagicEnvelope.
+Defaults to C<base64url>, which is the only encoding supported.
+
+
+=head2 C<sig_base>
+
+  my $base = $me->sig_base;
+
+The signature base of the MagicEnvelope.
+
+
+=head2 <signature>
+
+  my $sig = $me->signature('key-01');
+  my $sig = $me->signature;
+
+A signature of the MagicEnvelope.
+For retrieving a specific signature, pass a key id,
+otherwise a default signature will be returned.
+
+If a matching signature is found, the signature
+is returned as a hashref,
+containing b64url encoded data for C<value>
+and possibly C<key_id>.
+If no matching signature is found, false is returned.
+
+B<This attribute is experimental and can change without warning!>
+
+
+=head2 C<signed>
+
+  # With key id
+  if ($me->signed('key-01')) {
+    print "Magic Envelope is signed with key-01.\n";
+  }
+
+  # Without key id
+  elsif ($me->signed) {
+    print "Magic Envelope is signed.\n";
+  };
+
+Returns a C<true> value in case the MagicEnvelope is signed at least once.
+Accepts optionally a C<key_id> and returns true, if the
+MagicEnvelope was signed with this specific key.
+
+B<This attribute is experimental and can change without warning!>
+
+
+=head1 METHODS
+
+
+=head2 C<new>
+
+The L<Crypt::MagicSignatures::Envelope> constructor accepts
+MagicEnvelope data in various formats.
+
+It accepts MagicEnvelopes in the XML format or an
+XML document including an MagicEnvelope C<provenance> element.
+
+  $me = Crypt::MagicSignatures::Envelope->new(<<'MEXML');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>base64url</me:encoding>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+  MEXML
+
+Additionally it accepts MagicEnvelopes in the JSON notation.
+
+  $me = Crypt::MagicSignatures::Envelope->new(<<'MEJSON');
+  {
+    "data_type": "text\/plain",
+    "data":"U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==",
+    "alg":"RSA-SHA256",
+    "encoding":"base64url",
+    "sigs": [
+      { "key_id": "my-01",
+        "value":"S1VqYVlIWFpuRGVTX3l4S09CcWdjRV..."
+      }
+    ]
+  }
+  MEJSON
+
+The constructor also accepts MagicEnvelopes by defined
+attributes (the same as described in the JSON notation),
+with the data not encoded.
+This is the common way to fold new envelopes.
+
+  $me = Crypt::MagicSignatures::Envelope->new(
+    data      => 'Some arbitrary string.',
+    data_type => 'plain_text',
+    alg       => 'RSA-SHA256',
+    encoding  => 'base64url',
+    sigs => [
+      {
+        key_id => 'my-01',
+        value  => 'S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5U
+                   lh4dmRFSnFhQW5XUmpBUEJqZUM0b0lReER4d0IwWG
+                   VQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ=='
+      }
+    ]
+  );
+
+Finally the constructor accepts MagicEnvelopes in the compact
+MagicEnvelope notation as described in the
+L<MagicSignature Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+
+  $me = Crypt::MagicSignatures::Envelope->new(<<'MECOMPACT');
+    bXktMDE=.S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVlu
+    ZkI5Ulh4dmRFSnFhQW5XUmpBUEJqZUM0b0lReER4d0IwW
+    GVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==.U29tZ
+    SBhcmJpdHJhcnkgc3RyaW5nLg.dGV4dC9wbGFpbg.YmFz
+    ZTY0dXJs.UlNBLVNIQTI1Ng
+  MECOMPACT
+
+
+=head2 C<sign>
+
+  $me->sign( 'key-01' => 'RSA.hgfrhvb ...' )
+     ->sign( 'RSA.hgfrhvb ...' )
+     ->sign( 'RSA.hgfrhvb ...', -data)
+     ->sign( 'key-02' => 'RSA.hgfrhvb ...', -data);
+
+  my $mkey = Crypt::MagicSignatures::Key->new( 'RSA.hgfrhvb ...' )
+  $me->sign( $mkey );
+
+Adds a signature to the MagicEnvelope.
+
+For adding a signature, the private key with an optional prepended
+key id has to be given.
+The private key can be a L<Crypt::MagicSignatures::Key> object,
+a MagicKey string as described in the
+L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
+containing the non-generation parameters accepted by
+L<Crypt::MagicSignatures::Key> C<new>.
+
+Optionally a flag C<-data> can be passed,
+that won't sign the base string as defined in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
+I<(This is implemented for compatibility with non-standard implementations)>.
+
+On success, the method returns the MagicEnvelope,
+otherwise it returns a false value.
+
+A MagicEnvelope can be signed multiple times.
+
+B<This method is experimental and can change without warning!>
+
+
+=head2 C<verify>
+
+  $me->verify(
+    'RSA...',
+    ['key-01' => 'RSA...', -data],
+    'RSA...'
+  );
+
+Verifies a signed envelope against a bunch of given public MagicKeys.
+Returns true on success. In other case false.
+
+If one key succeeds, the envelope is verified and
+the method returns a C<true> value, otherwise
+it returns C<false>.
+
+An element can be a L<Crypt::MagicSignatures::Key> object,
+a MagicKey string as described in the
+L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hashref
+containing the non-generation parameters accepted by
+L<Crypt::MagicSignatures::Key> C<new>.
+
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
+I<(This is implemented for compatibility with non-standard implementations)>.
+
+For referring to a certain key, an array reference
+can be passed, containing the key (defined as described above) with an optional prepended key id and an optional flag appended, refering to the data to be verified. Conforming with the specification the default value is C<-base>. C<-data> will verify the data only, C<-compatible> will first try to verify the base string and then will verify the data on failure
+I<(This is implemented for compatibility with non-standard implementations)>.
+
+B<This method is experimental and can change without warning!>
+
+
+=head2 C<to_xml>
+
+  $me->to_xml;
+
+Returns the MagicEnvelope as a stringified xml representation.
+
+
+=head2 C<to_json>
+
+  $me->to_json;
+
+Returns the MagicEnvelope as a stringified json representation.
+
+
+=head2 C<to_compact>
+
+  $me->to_compact;
+
+Returns the MagicEnvelope as a compact representation.
+
+
+=head1 DEPENDENCIES
+
+L<Crypt::MagicSignatures::Key>,
+L<Mojolicious>.
+
+
+=head1 KNOWN BUGS AND LIMITATIONS
+
+The signature is currently not working correctly!
+
+
+=head1 AVAILABILITY
+
+  https://github.com/Akron/Crypt-MagicSignatures
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2011-2013, Nils Diewald.
+
+This program is free software, you can redistribute it and/or modify it under
+the same terms as Perl.
+
+=cut
