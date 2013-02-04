@@ -97,15 +97,13 @@ containing base64url encoded data for C<value>
 and possibly a C<key_id>.
 If no matching signature is found, a C<false> value is returned.
 
-B<This attribute is experimental and may change without warning!>
-
 
 =head2 C<signature_base>
 
   my $base = $me->signature_base;
 
 The signature base string of the MagicEnvelope as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#sbs>.
 
 
 =head2 C<signed>
@@ -125,10 +123,8 @@ L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/
   };
 
 Returns a C<true> value in case the MagicEnvelope is signed at least once.
-Accepts optionally a C<key_id> and returns true, if the
+Accepts optionally a C<key_id> and returns a C<true> value, if the
 MagicEnvelope was signed with this specific key.
-
-B<This attribute is experimental and may change without warning!>
 
 
 =head1 METHODS
@@ -153,11 +149,15 @@ B<This attribute is experimental and may change without warning!>
 
 The constructor accepts MagicEnvelope data in various formats.
 It accepts MagicEnvelopes in the XML format or an
-XML document including a MagicEnvelope C<provenance> element.
+XML document including a MagicEnvelope C<provenance> element
+as described in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>.
 
 Additionally it accepts MagicEnvelopes in the JSON notation
 or defined by the same attributes as the JSON notation
-(but with the data not encoded).
+(but with the data not encoded)
+as described in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
 The latter is the common way to fold new envelopes.
 
   $me = Crypt::MagicSignatures::Envelope->new(<<'MEJSON');
@@ -189,7 +189,7 @@ The latter is the common way to fold new envelopes.
 
 Finally the constructor accepts MagicEnvelopes in the compact
 MagicEnvelope notation as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
 
   $me = Crypt::MagicSignatures::Envelope->new(<<'MECOMPACT');
     bXktMDE=.S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVlu
@@ -216,11 +216,11 @@ For adding a signature, the private key with an optional prepended
 key id has to be given.
 The private key can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
-L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hash reference
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hash reference
 containing the non-generation parameters accepted by the
 L<Crypt::MagicSignatures::Key> constructor.
 Optionally a flag C<-data> can be passed,
-that will sign the data payload instead of the base string as defined in the
+that will sign the data payload instead of the signature base string as defined in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
 I<(This is implemented for compatibility with non-standard implementations)>.
 
@@ -245,13 +245,11 @@ B<This method is experimental and may change without warning!>
 Verifies a signed envelope against a bunch of given public MagicKeys.
 Returns a C<true> value on success, otherwise C<false>.
 
-If one key succeeds, the envelope is verified and
-the method returns a C<true> value, otherwise
-it returns C<false>.
+If one key succeeds, the envelope is verified.
 
 An element can be a L<Crypt::MagicSignatures::Key> object,
 a MagicKey string as described in the
-L<Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hash reference
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1> or a hash reference
 containing the non-generation parameters accepted by the
 L<Crypt::MagicSignatures::Key> constructor.
 
@@ -271,14 +269,15 @@ B<This method is experimental and may change without warning!>
   my $compact_string = $me->to_compact;
 
 Returns the MagicEnvelope in compact notation as described in the
-L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>.
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#compact>.
 
 
 =head2 C<to_json>
 
   my $json_string = $me->to_json;
 
-Returns the MagicEnvelope as a stringified json representation.
+Returns the MagicEnvelope as a stringified json representation as described in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
 
 
 =head2 C<to_xml>
@@ -286,7 +285,8 @@ Returns the MagicEnvelope as a stringified json representation.
   my $xml_string = $me->to_xml;
   my $xml_provenance_string = $me->to_xml(1);
 
-Returns the MagicEnvelope as a stringified xml representation.
+Returns the MagicEnvelope as a stringified xml representation as described in the
+L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>.
 If a C<true> value is passed, a provenance fragment will be returned instead
 of a valid xml document.
 
@@ -301,8 +301,10 @@ L<Mojolicious>.
 
 The signing and verifification is not guaranteed to be
 compatible with other implementations!
-Implementations like StatusNet (Identi.ca), MiniMe, and examples from the
-reference implementation are tested.
+Implementations like L<StatusNet|http://status.net/> (L<Identi.ca|http://identi.ca/),
+L<MiniMe|https://code.google.com/p/minime-microblogger/>, and examples from the
+L<reference implementation|https://code.google.com/p/salmon-protocol/source/browse/> are tested.
+
 See the test suite for further information.
 
 
