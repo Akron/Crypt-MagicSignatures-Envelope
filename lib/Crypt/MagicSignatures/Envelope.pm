@@ -1,6 +1,9 @@
 package Crypt::MagicSignatures::Envelope;
 use strict;
 use warnings;
+
+use v5.10.1;
+
 use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
 use Carp qw/carp croak/;
 use Mojo::DOM;
