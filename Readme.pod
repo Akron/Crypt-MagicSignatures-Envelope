@@ -31,10 +31,13 @@ Crypt::MagicSignatures::Envelope - MagicEnvelopes for the Salmon Protocol
 
 =head1 DESCRIPTION
 
-L<Crypt::MagicSignatures::Envelope> implements MagicEnvelopes with MagicSignatures as described in the
+L<Crypt::MagicSignatures::Envelope> implements MagicEnvelopes
+with MagicSignatures as described in the
 L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html>
-to sign messages of the L<Salmon Protocol|http://www.salmon-protocol.org/>.
-MagicSignatures is a I<"robust mechanism for digitally signing nearly arbitrary messages">.
+to sign messages of the
+L<Salmon Protocol|http://www.salmon-protocol.org/>.
+MagicSignatures is a
+I<"robust mechanism for digitally signing nearly arbitrary messages">.
 
 B<This module is an early release! There may be significant changes in the future.>
 
@@ -62,7 +65,7 @@ The decoded data folded in the MagicEnvelope.
   my $data_type = $me->data_type;
   $me->data_type('text/plain');
 
-The mime type of the data folded in the MagicEnvelope.
+The Mime type of the data folded in the MagicEnvelope.
 Defaults to C<text/plain>.
 
 
@@ -83,7 +86,7 @@ Defaults to C<text/plain>.
   # alice@example.com
 
 The L<Mojo::DOM> object of the decoded data,
-if the MagicEnvelope contains XML.
+in the case the MagicEnvelope contains XML.
 
 B<This attribute is experimental and may change without warning!>
 
@@ -162,9 +165,11 @@ MagicEnvelope was signed with this specific key.
   MEXML
 
 The constructor accepts MagicEnvelope data in various formats.
-It accepts MagicEnvelopes in the L<XML format|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>
+It accepts MagicEnvelopes in the
+L<XML format|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor4>
 or an XML document including a
-L<MagicEnvelope provenance|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor7> element.
+L<MagicEnvelope provenance|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor7>
+element.
 
 Additionally it accepts MagicEnvelopes in the
 L<JSON notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>
@@ -225,8 +230,10 @@ Adds a signature to the MagicEnvelope.
 
 For adding a signature, the private key with an optional prepended
 key id has to be given.
-The private key can be a L<Crypt::MagicSignatures::Key> object,
-a L<compact MagicKey string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1>
+The private key can be a
+L<Crypt::MagicSignatures::Key> object,
+a MagicKey in
+L<compact notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1>
 or a hash reference
 containing the non-generation parameters accepted by the
 L<Crypt::MagicSignatures::Key> constructor.
@@ -255,11 +262,11 @@ B<This method is experimental and may change without warning!>
 
 Verifies a signed envelope against a bunch of given public MagicKeys.
 Returns a C<true> value on success, otherwise C<false>.
-
 If one key succeeds, the envelope is verified.
 
 An element can be a L<Crypt::MagicSignatures::Key> object,
-a L<compact MagicKey string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1>
+a MagicKey in
+L<compact notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.8.1>
 or a hash reference
 containing the non-generation parameters accepted by the
 L<Crypt::MagicSignatures::Key> constructor.
@@ -273,7 +280,8 @@ referring to the
 L<signature base string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
 of the MagicEnvelope.
 C<-data> will verify against the data only, C<-compatible> will first try to
-verify against the base signature string and then will verify against the data on failure
+verify against the base signature string and then will
+verify against the data on failure
 I<(this is implemented for compatibility with non-standard implementations)>.
 
 B<This method is experimental and may change without warning!>
@@ -318,7 +326,8 @@ The signing and verifification is not guaranteed to be
 compatible with other implementations!
 Implementations like L<StatusNet|http://status.net/> (L<Identi.ca|http://identi.ca/>),
 L<MiniMe|https://code.google.com/p/minime-microblogger/>, and examples from the
-L<reference implementation|https://code.google.com/p/salmon-protocol/source/browse/> are tested.
+L<reference implementation|https://code.google.com/p/salmon-protocol/source/browse/>
+are tested.
 
 See the test suite for further information.
 
@@ -330,7 +339,8 @@ See the test suite for further information.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2011-2013, Nils Diewald.
+Copyright (C) 2011-2013, L<Nils Diewald|http://nils-diewald.de/>.
+
 
 This program is free software, you can redistribute it and/or modify it under
 the same terms as Perl.

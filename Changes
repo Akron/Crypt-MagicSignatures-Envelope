@@ -1,6 +1,7 @@
-0.02 2013-02-04
+0.02 2013-02-06
         - Documentation tweaks.
 	- Fix documentation bug.
+	- Update C::MS::Key dependency.
 
 0.01 2013-02-04
         - Initial submission to GitHub.
