@@ -9,7 +9,7 @@ use Carp qw/carp croak/;
 use Mojo::DOM;
 use Mojo::JSON;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';
