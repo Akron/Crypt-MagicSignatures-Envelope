@@ -8,12 +8,14 @@ use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
 use Carp qw/carp croak/;
 use Mojo::DOM;
 use Mojo::JSON;
+use Mojo::Util qw/trim/;
 
 our $VERSION = '0.03';
 
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';
 
+sub _trim_all ($);
 
 # Constructor
 sub new {
@@ -27,13 +29,14 @@ sub new {
     my %self = @_;
 
     # Given algorithm is wrong
-    if ($self{alg} && uc($self{alg}) ne 'RSA-SHA256') {
+    if ($self{alg} &&
+	  uc $self{alg} ne 'RSA-SHA256') {
       carp 'Algorithm is not supported' and return;
     };
 
     # Given encoding is wrong
     if ($self{encoding} &&
-	  lc($self{encoding}) ne 'base64url') {
+	  lc $self{encoding} ne 'base64url') {
       carp 'Encoding is not supported' and return;
     };
 
@@ -72,20 +75,22 @@ sub new {
 
   # Envelope is defined as a string
   else {
+    my $string = trim shift;
 
     # Construct object
     $self = bless { sigs => [] }, $class;
 
     # Message is me-xml
-    if ($_[0] =~ /^[\s\t\n]*\</) {
+    if (index($string, '<') == 0) {
 
       # Parse xml string
-      my $dom = Mojo::DOM->new(xml => 1);
-      $dom->parse( shift );
+      my $dom = Mojo::DOM->new(xml => 1)->parse($string);
 
       # Extract envelope from env or provenance
       my $env = $dom->at('env');
       $env = $dom->at('provenance') unless $env;
+
+      # Envelope doesn't exist or is in wrong namespace
       return if !$env || $env->namespace ne ME_NS;
 
       # Retrieve and edit data
@@ -94,36 +99,38 @@ sub new {
       # The envelope is empty
       return unless $data;
 
+      my $temp;
+
       # Add data type if given
-      $self->data_type( $data->attrs->{type} ) if $data->attrs->{type};
+      $self->data_type( $temp ) if $temp = $data->attrs->{type};
 
       # Add decoded data
       $self->data( b64url_decode( $data->text ) );
 
+      # Envelope is empty
+      return unless $self->data;
+
       # Check algorithm
-      if ($env->at('alg') &&
-	    ($env->at('alg')->text ne 'RSA-SHA256')) {
+      if (($temp = $env->at('alg')) &&
+	    (uc $temp->text ne 'RSA-SHA256')) {
 	carp 'Algorithm is not supported' and return;
       };
 
       # Check encoding
-      if ($env->at('encoding') &&
-	    ($env->at('encoding')->text ne 'base64url')) {
+      if (($temp = $env->at('encoding')) &&
+	    (lc $temp->text ne 'base64url')) {
 	carp 'Encoding is not supported' and return;
       };
 
       # Find signatures
       $env->find('sig')->each(
 	sub {
-	  return unless $_->text;
+	  my $sig_text = $_->text or return;
 
-	  my $sig_text = $_->text;
-	  $sig_text =~ s/[\s\t]//g;
+	  my %sig = ( value => _trim_all $sig_text );
 
-	  my %sig = ( value => $sig_text );
-
-	  if (exists $_->attrs->{key_id}) {
-	    $sig{key_id} = $_->attrs->{key_id};
+	  if ($temp = $_->attrs->{key_id}) {
+	    $sig{key_id} = $temp;
 	  };
 
 	  # Add sig to array
@@ -132,12 +139,12 @@ sub new {
     }
 
     # Message is me-json
-    elsif ($_[0] =~ /^[\s\t\n]*\{/ ) {
+    elsif (index($string, '{') == 0) {
       my $env;
 
       # Parse json object
       my $json = Mojo::JSON->new;
-      $env = $json->decode( shift );
+      $env = $json->decode($string);
 
       unless (defined $env) {
 	carp $json->error and return;
@@ -150,18 +157,31 @@ sub new {
 
       $self->data( b64url_decode( $self->data ));
 
+      # Envelope is empty
+      return unless $self->data;
+
       # Unknown parameters
       carp 'Unknown parameters: ' . join(',', %$env)
 	if keys %$env;
     }
 
     # Message is me as a compact string
-    elsif (((my $me_c = _trim($_[0])) =~ /\.YmFzZTY0dXJs\./) > 0) {
+    elsif (index((my $me_c = _trim_all $string), '.YmFzZTY0dXJs.') > 0) {
 
       # Parse me compact string
       my $value = [];
       foreach (@$value = split(/\./, $me_c) ) {
 	$_ = b64url_decode( $_ ) if $_;
+      };
+
+      # Given encoding is wrong
+      unless (lc $value->[4] eq 'base64url') {
+	carp 'Encoding is not supported' and return;
+      };
+
+      # Given algorithm is wrong
+      unless (uc $value->[5] eq 'RSA-SHA256') {
+	carp 'Algorithm is not supported' and return;
       };
 
       # Store sig to data structure
@@ -171,29 +191,15 @@ sub new {
 	$_->{value}     = $value->[1];
       };
 
-      # Store values to data structure
-      for ($value) {
-
-	# ME is empty
-	return unless $_->[2];
-
-	$self->data( $_->[2] );
-	if ($_->[3]) { $self->data_type( $_->[3] ) };
-	if ($_->[4]) { $self->encoding( $_->[4] ) };
-	if ($_->[5]) { $self->alg( $_->[5] ) };
-      };
+      # ME is empty
+      return unless $value->[2];
+      $self->data( $value->[2] );
+      $self->data_type( $value->[3] ) if $value->[3];
     };
-  };
-
-  # Message has unknown format
-  unless ($self->data) {
-    carp 'Envelope has unknown format' and return;
   };
 
   # The envelope is signed
   $self->{signed} = 1 if $self->{sigs}->[0];
-
-  $self->{sig_base} = '';
 
   return $self;
 };
@@ -209,9 +215,10 @@ sub encoding { 'base64url' };
 
 # Data of the MagicEnvelope
 sub data {
-  unless (defined $_[1]) {
-    return shift->{data} // '';
-  };
+
+  # Return data
+  return shift->{data} // '' unless defined $_[1];
+
   my $self = shift;
 
   # Delete calculated signature base string
@@ -226,9 +233,10 @@ sub data {
 
 # Datatype of the MagicEnvelope's content
 sub data_type {
-  unless (defined $_[1]) {
-    return shift->{data_type} // 'text/plain';
-  };
+
+  # Return data type
+  return shift->{data_type} // 'text/plain' unless defined $_[1];
+
   my $self = shift;
 
   # Delete calculated signature base string
@@ -407,20 +415,13 @@ sub signed {
 sub signature_base {
   my $self = shift;
 
-  # Already computed
-  return $self->{sig_base} if $self->{sig_base};
-
-  $self->{sig_base} =
+  $self->{sig_base} ||=
     join('.',
 	 b64url_encode( $self->data, 0 ),
 	 b64url_encode( $self->data_type ),
 	 b64url_encode( $self->encoding ),
 	 b64url_encode( $self->alg )
        );
-
-  unless (defined $self->{sig_base}) {
-    carp 'Unable to construct sig_base' and return;
-  };
 
   return $self->{sig_base};
 };
@@ -434,17 +435,15 @@ sub dom {
   return $self->{dom} if $self->{dom};
 
   # Create new DOM instantiation
-  my $dom = Mojo::DOM->new;
   if (index($self->data_type, 'xml') >= 0) {
+    my $dom = Mojo::DOM->new(xml => 1);
     $dom->parse( $self->{data} );
-  }
 
-  else {
-    return;
+    # Return DOM instantiation (Maybe empty)
+    return ($self->{dom} = $dom);
   };
 
-  # Return DOM instantiation (Maybe empty)
-  return ($self->{dom} = $dom);
+  return;
 };
 
 
@@ -544,7 +543,7 @@ sub to_json {
 
 
 # Delete all whitespaces
-sub _trim {
+sub _trim_all ($) {
   my $string = shift;
   $string =~ tr{\t-\x0d }{}d;
   $string;

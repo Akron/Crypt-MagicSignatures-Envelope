@@ -12,6 +12,7 @@ BEGIN {
 };
 
 
+
 ok(my $me = Crypt::MagicSignatures::Envelope->new(
   data => 'Some arbitrary string.'
 ), 'Constructor (Attributes)');
@@ -59,6 +60,7 @@ is($me->alg, 'RSA-SHA256', 'Algorithm');
 is($me->encoding, 'base64url', 'Encoding');
 
 ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+
   <?xml version="1.0" encoding="UTF-8"?>
   <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
     <me:data type="text/plain">
@@ -173,6 +175,72 @@ XML
 ok($me->data_type('application/atom+xml'), 'Set datatype'),
 is($me->dom->at('author > uri')->text, 'alice@example.com', 'DOM author uri');
 
+{
+  local $SIG{__WARN__} = sub {};
+
+ok(!($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML')), 'Constructor (XML) Wrong enc');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>unk</me:encoding>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+
+ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML) Fuzzy Enc');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>Base64URL</me:encoding>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+
+ok(!($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML')), 'Constructor (XML) Wrong alg');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>base64url</me:encoding>
+    <me:alg>RSA/SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+
+ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML) Fuzzy alg');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>base64url</me:encoding>
+    <me:alg>rsa-sha256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+
+
+
+};
 
 done_testing;
 
