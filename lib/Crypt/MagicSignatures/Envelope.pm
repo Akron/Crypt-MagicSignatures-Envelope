@@ -886,7 +886,7 @@ L<compact notation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-
   my $json_string = $me->to_json;
 
 Returns the MagicEnvelope as a stringified
-L<json representation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
+L<JSON representation|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#anchor5>.
 
 
 =head2 to_xml
@@ -920,7 +920,7 @@ See the test suite for further information.
 
 =head1 AVAILABILITY
 
-  https://github.com/Akron/Crypt-MagicSignatures-Key
+  https://github.com/Akron/Crypt-MagicSignatures-Envelope
 
 
 =head1 COPYRIGHT AND LICENSE
