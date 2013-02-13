@@ -1,11 +1,13 @@
 package Crypt::MagicSignatures::Envelope;
 use strict;
 use warnings;
+use Carp qw/carp croak/;
 
 use v5.10.1;
 
+our @CARP_NOT;
+
 use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
-use Carp qw/carp croak/;
 use Mojo::DOM;
 use Mojo::JSON;
 use Mojo::Util qw/trim/;
