@@ -12,7 +12,7 @@ use Mojo::DOM;
 use Mojo::JSON;
 use Mojo::Util qw/trim/;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';

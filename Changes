@@ -1,3 +1,7 @@
+0.04 2013-02-14
+        - Small code improvements.
+	- Update C::MS::Key dependency.
+
 0.03 2013-02-08
 	- Fix documentation bug.
 	- Lots of small code improvements.
