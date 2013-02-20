@@ -4,6 +4,7 @@
 
 Crypt::MagicSignatures::Envelope - MagicEnvelopes for the Salmon Protocol
 
+
 =head1 SYNOPSIS
 
   use Crypt::MagicSignatures::Key;
@@ -145,7 +146,6 @@ MagicEnvelope was signed with this specific key.
 
 
 =head1 METHODS
-
 
 =head2 new
 
@@ -318,6 +318,9 @@ of a valid xml document.
 
 L<Crypt::MagicSignatures::Key>,
 L<Mojolicious>.
+
+For speed improvements, see the recommendations in
+L<Crypt::MagicSignatures::Key|Crypt::MagicSignatures::Key/DEPENDENCIES>.
 
 
 =head1 KNOWN BUGS AND LIMITATIONS

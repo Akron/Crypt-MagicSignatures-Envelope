@@ -12,7 +12,7 @@ use Mojo::DOM;
 use Mojo::JSON;
 use Mojo::Util qw/trim/;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';
@@ -592,6 +592,7 @@ __END__
 
 Crypt::MagicSignatures::Envelope - MagicEnvelopes for the Salmon Protocol
 
+
 =head1 SYNOPSIS
 
   use Crypt::MagicSignatures::Key;
@@ -733,7 +734,6 @@ MagicEnvelope was signed with this specific key.
 
 
 =head1 METHODS
-
 
 =head2 new
 
@@ -906,6 +906,9 @@ of a valid xml document.
 
 L<Crypt::MagicSignatures::Key>,
 L<Mojolicious>.
+
+For speed improvements, see the recommendations in
+L<Crypt::MagicSignatures::Key|Crypt::MagicSignatures::Key/DEPENDENCIES>.
 
 
 =head1 KNOWN BUGS AND LIMITATIONS

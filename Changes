@@ -1,3 +1,7 @@
+0.05 2013-02-20
+        - Update C::MS::Key dependency.
+	- Add recommendations for speed improvement.
+
 0.04 2013-02-14
         - Small code improvements.
 	- Update C::MS::Key dependency.

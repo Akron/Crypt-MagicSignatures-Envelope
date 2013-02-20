@@ -9,7 +9,7 @@ WriteMakefile(
     NAME         => 'Crypt::MagicSignatures::Envelope',
     AUTHOR       => 'Nils Diewald',
     PREREQ_PM => {
-      'Crypt::MagicSignatures::Key' => '0.06',
+      'Crypt::MagicSignatures::Key' => '0.07',
       'Mojolicious' => 3.43,
       'Carp' => 0,
       'Test::More' => 0
