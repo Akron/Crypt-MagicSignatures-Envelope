@@ -906,7 +906,6 @@ of a valid xml document.
 
 L<Crypt::MagicSignatures::Key>,
 L<Mojolicious>.
-
 For speed improvements, see the recommendations in
 L<Crypt::MagicSignatures::Key|Crypt::MagicSignatures::Key/DEPENDENCIES>.
 
