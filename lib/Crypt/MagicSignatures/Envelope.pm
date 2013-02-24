@@ -1,7 +1,7 @@
 package Crypt::MagicSignatures::Envelope;
 use strict;
 use warnings;
-use Carp qw/carp croak/;
+use Carp 'carp';
 
 use v5.10.1;
 
@@ -17,7 +17,7 @@ our $VERSION = '0.05';
 # MagicEnvelope namespace
 use constant ME_NS => 'http://salmon-protocol.org/ns/magic-env';
 
-sub _trim_all ($);
+sub _trim_all;
 
 # Constructor
 sub new {
@@ -275,13 +275,13 @@ sub sign {
   if ($mkey) {
 
     # No valid private key
-    return undef unless $mkey->d;
+    return unless $mkey->d;
 
     # Compute signature for base string
     my $msig = $mkey->sign( $data );
 
     # No valid signature
-    return undef unless $msig;
+    return unless $msig;
 
     # Sign envelope
     my %msig = ( value => $msig );
@@ -545,7 +545,7 @@ sub to_json {
 
 
 # Delete all whitespaces
-sub _trim_all ($) {
+sub _trim_all {
   my $string = shift;
   $string =~ tr{\t-\x0d }{}d;
   $string;
