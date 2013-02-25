@@ -660,7 +660,7 @@ Defaults to C<text/plain>.
 
 =head2 dom
 
-  Fold an xml message
+  # Fold an xml message
   my $me = Crypt::MagicSignatures::Envelope->new( data => <<'XML' );
   <?xml version='1.0' encoding='UTF-8'?>
   <entry xmlns='http://www.w3.org/2005/Atom'>
