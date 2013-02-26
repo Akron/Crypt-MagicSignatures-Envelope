@@ -626,7 +626,7 @@ L<MagicSignatures Specification|http://salmon-protocol.googlecode.com/svn/trunk/
 to sign messages of the
 L<Salmon Protocol|http://www.salmon-protocol.org/>.
 MagicSignatures is a
-I<"robust mechanism for digitally signing nearly arbitrary messages">.
+"robust mechanism for digitally signing nearly arbitrary messages".
 
 B<This module is an early release! There may be significant changes in the future.>
 
