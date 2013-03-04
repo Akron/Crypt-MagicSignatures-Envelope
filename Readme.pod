@@ -240,7 +240,7 @@ L<Crypt::MagicSignatures::Key> constructor.
 Optionally a flag C<-data> can be passed,
 that will sign the data payload instead of the
 L<signature base string|http://salmon-protocol.googlecode.com/svn/trunk/draft-panzer-magicsig-01.html#rfc.section.3.2>
-I<(this is implemented for compatibility with non-standard implementations)>.
+(this is implemented for compatibility with non-standard implementations).
 
 On success, the method returns the MagicEnvelope,
 otherwise it returns a C<false> value.
@@ -282,7 +282,7 @@ of the MagicEnvelope.
 C<-data> will verify against the data only, C<-compatible> will first try to
 verify against the base signature string and then will
 verify against the data on failure
-I<(this is implemented for compatibility with non-standard implementations)>.
+(this is implemented for compatibility with non-standard implementations).
 
 B<This method is experimental and may change without warning!>
 
@@ -324,7 +324,7 @@ L<Crypt::MagicSignatures::Key|Crypt::MagicSignatures::Key/DEPENDENCIES>.
 
 =head1 KNOWN BUGS AND LIMITATIONS
 
-The signing and verifification is not guaranteed to be
+The signing and verification is not guaranteed to be
 compatible with other implementations!
 Implementations like L<StatusNet|http://status.net/> (L<Identi.ca|http://identi.ca/>),
 L<MiniMe|https://code.google.com/p/minime-microblogger/>, and examples from the
