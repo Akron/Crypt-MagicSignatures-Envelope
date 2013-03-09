@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 our @CARP_NOT;
 
@@ -679,7 +679,7 @@ Defaults to C<text/plain>.
 The L<Mojo::DOM> object of the decoded data,
 in the case the MagicEnvelope contains XML.
 
-B<This attribute is experimental and may change without warning!>
+B<This attribute is experimental and may change without warnings!>
 
 
 =head2 encoding
@@ -837,7 +837,7 @@ otherwise it returns a C<false> value.
 
 A MagicEnvelope can be signed multiple times.
 
-B<This method is experimental and may change without warning!>
+B<This method is experimental and may change without warnings!>
 
 
 =head2 verify
@@ -874,7 +874,7 @@ verify against the base signature string and then will
 verify against the data on failure
 (this is implemented for compatibility with non-standard implementations).
 
-B<This method is experimental and may change without warning!>
+B<This method is experimental and may change without warnings!>
 
 
 =head2 to_compact
