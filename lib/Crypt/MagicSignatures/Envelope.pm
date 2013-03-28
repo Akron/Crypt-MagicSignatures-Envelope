@@ -335,7 +335,7 @@ sub verify {
       };
 
       # Verify against data
-      if ($flag ~~ [qw/-data -compatible/]) {
+      if ($flag eq '-data' || $flag eq '-compatible') {
 
 	# Verify with b64url data
 	$verified = $mkey->verify(b64url_encode($self->data) => $sig->{value});
@@ -556,7 +556,11 @@ sub _trim_all {
 sub _key_array {
   return () unless @_;
 
-  my $flag = $_[-1] ~~ [qw/-data -compatible -base/] ? pop : '-base';
+  my $flag = '-base';
+
+  if ($_[-1] eq '-data' || $_[-1] eq '-compatible' || $_[-1] eq '-base') {
+    $flag = pop;
+  };
 
   my $key  = pop;
   my $key_id = shift;
