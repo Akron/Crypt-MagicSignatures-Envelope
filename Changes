@@ -1,9 +1,8 @@
-0.07 2013-03-28
+0.06 2013-08-06
         - Disabled smartmatch.
 	- Updated test suite.
-
-0.06 2013-03-09
         - Small improvements of the documentation.
+	- Update for Mojolicious 4.23.
 
 0.05 2013-03-04
         - Update C::MS::Key dependency.

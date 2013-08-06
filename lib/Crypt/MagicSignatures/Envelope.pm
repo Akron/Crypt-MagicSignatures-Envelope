@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.07';
+our $VERSION = '0.06';
 
 our @CARP_NOT;
 
@@ -103,7 +103,7 @@ sub new {
       my $temp;
 
       # Add data type if given
-      $self->data_type( $temp ) if $temp = $data->attrs->{type};
+      $self->data_type( $temp ) if $temp = $data->attr->{type};
 
       # Add decoded data
       $self->data( b64url_decode( $data->text ) );
@@ -130,7 +130,7 @@ sub new {
 
 	  my %sig = ( value => _trim_all $sig_text );
 
-	  if ($temp = $_->attrs->{key_id}) {
+	  if ($temp = $_->attr->{key_id}) {
 	    $sig{key_id} = $temp;
 	  };
 

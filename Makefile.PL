@@ -13,8 +13,8 @@ WriteMakefile(
     'Test::More' => 0
   },
   PREREQ_PM => {
-    'Crypt::MagicSignatures::Key' => '0.08',
-    'Mojolicious' => 3.43,
+    'Crypt::MagicSignatures::Key' => '0.09',
+    'Mojolicious' => 4.23,
     'Carp' => 0,
   },
   LICENSE => 'perl',
