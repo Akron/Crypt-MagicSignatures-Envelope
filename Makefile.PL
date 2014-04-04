@@ -13,11 +13,11 @@ WriteMakefile(
     'Test::More' => 0
   },
   PREREQ_PM => {
-    'Crypt::MagicSignatures::Key' => '0.09',
+    'Crypt::MagicSignatures::Key' => '0.13',
     'Mojolicious' => 4.23,
     'Carp' => 0,
   },
-  LICENSE => 'perl',
+  LICENSE => 'artistic_2',
   META_MERGE   => {
     requires  => { perl => '5.010001' },
     resources => {
@@ -25,7 +25,7 @@ WriteMakefile(
       repository  => 'https://github.com/Akron/Crypt-MagicSignatures-Envelope'
     },
     recommends => {
-      'Math::Prime::Util::GMP'  => 0.06,
+      'Math::Prime::Util::GMP'  => 0.18,
       'Math::BigInt::GMP'       => 0,
       'Math::Random::ISAAC::XS' => 1.004,
     }
