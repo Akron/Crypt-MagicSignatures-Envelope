@@ -1,3 +1,9 @@
+0.08 2015-03-02
+        - Removed OO-usage of Mojo::JSON.
+
+0.07 2014-04-04
+        - Coherent Artistic License 2.0.
+
 0.06 2013-08-06
         - Disabled smartmatch.
 	- Updated test suite.

@@ -4,12 +4,12 @@ use warnings;
 use Carp 'carp';
 use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
 use Mojo::DOM;
-use Mojo::JSON;
+use Mojo::JSON qw/encode_json decode_json/;
 use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 our @CARP_NOT;
 
@@ -144,11 +144,10 @@ sub new {
       my $env;
 
       # Parse json object
-      my $json = Mojo::JSON->new;
-      $env = $json->decode($string);
+      $env = decode_json $string;
 
       unless (defined $env) {
-	carp $json->error and return;
+	return;
       };
 
       # Clone datastructure
@@ -542,7 +541,7 @@ sub to_json {
   };
 
   # Return json-string
-  return Mojo::JSON->new->encode( \%new_em );
+  return encode_json \%new_em;
 };
 
 
