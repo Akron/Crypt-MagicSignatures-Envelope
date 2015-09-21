@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 our @CARP_NOT;
 
@@ -529,7 +529,7 @@ sub to_json {
     alg       => $self->alg,
     encoding  => $self->encoding,
     data_type => $self->data_type,
-    data      => b64url_encode( $self->data ),
+    data      => b64url_encode( $self->data, 0),
     sigs      => []
   );
 

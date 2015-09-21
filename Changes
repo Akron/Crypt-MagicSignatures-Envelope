@@ -1,3 +1,6 @@
+0.09 2015-02-21
+        - Fixed padding removal in to_json.
+
 0.08 2015-03-02
         - Removed OO-usage of Mojo::JSON.
 

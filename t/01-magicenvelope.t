@@ -3,6 +3,7 @@ use Test::More;
 use strict;
 use warnings;
 no strict 'refs';
+use Mojo::JSON qw/decode_json/;
 
 use lib '../lib';
 
@@ -28,7 +29,7 @@ ok(!$me->dom, 'DOM not okay');
 ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEJSON'), 'Constructor (JSON)');
 {
   "data_type": "text\/plain",
-  "data":"U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==",
+  "data":"U29tZSBhcmJpdHJhcnkgc3RyaW5nLg",
   "alg":"RSA-SHA256",
   "encoding":"base64url",
   "sigs": [
@@ -59,6 +60,7 @@ is($me->data_type, 'text/plain', 'Data type');
 is($me->alg, 'RSA-SHA256', 'Algorithm');
 is($me->encoding, 'base64url', 'Encoding');
 
+# Ignore pading!
 ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
 
   <?xml version="1.0" encoding="UTF-8"?>
@@ -156,6 +158,8 @@ ok($me = Crypt::MagicSignatures::Envelope->new(
 ok(!$me->to_compact, 'Compact impossible as it is not signed');
 
 ok($me->to_json, 'JSON okay');
+
+like(decode_json($me->to_json)->{data}, qr/^PD94[^"]+?Pgo$/, 'No padding');
 
 ok($me->to_xml, 'JSON okay');
 
