@@ -103,6 +103,12 @@ ok(my $mkey = Crypt::MagicSignatures::Key->new(
 ), 'Key constructor');
 
 
+# Unable to sign
+{
+  local $SIG{__WARN__} = sub {};
+  ok(!$me->sign($mkey->to_string), 'Unable to sign without private exponent');
+};
+
 ok($me->sign(my_key => $mkey), 'Sign me');
 
 ok($me->verify($mkey->to_string), 'Verify me');

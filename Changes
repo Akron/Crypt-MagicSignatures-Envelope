@@ -1,3 +1,8 @@
+0.10 2016-09-12
+        - Warn on signing with public key.
+        - Fixed minimum dependency.
+        - Made access rights Kwalitee compliant.
+
 0.09 2015-02-21
         - Fixed padding removal in to_json.
 
@@ -9,29 +14,29 @@
 
 0.06 2013-08-06
         - Disabled smartmatch.
-	- Updated test suite.
+        - Updated test suite.
         - Small improvements of the documentation.
-	- Update for Mojolicious 4.23.
+        - Update for Mojolicious 4.23.
 
 0.05 2013-03-04
         - Update C::MS::Key dependency.
-	- Add recommendations for speed improvement.
-	- Update Makefile.
-	- Some improvements based on perlcritic.
-	- Improvements of documentation.
+        - Add recommendations for speed improvement.
+        - Update Makefile.
+        - Some improvements based on perlcritic.
+        - Improvements of documentation.
 
 0.04 2013-02-14
         - Small code improvements.
-	- Update C::MS::Key dependency.
+        - Update C::MS::Key dependency.
 
 0.03 2013-02-08
-	- Fix documentation bug.
-	- Lots of small code improvements.
+        - Fix documentation bug.
+        - Lots of small code improvements.
 
 0.02 2013-02-06
         - Documentation tweaks.
-	- Fix documentation bug.
-	- Update C::MS::Key dependency.
+        - Fix documentation bug.
+        - Update C::MS::Key dependency.
 
 0.01 2013-02-04
         - Initial submission to GitHub.

@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 our @CARP_NOT;
 
@@ -31,13 +31,13 @@ sub new {
 
     # Given algorithm is wrong
     if ($self{alg} &&
-	  uc $self{alg} ne 'RSA-SHA256') {
+    uc $self{alg} ne 'RSA-SHA256') {
       carp 'Algorithm is not supported' and return;
     };
 
     # Given encoding is wrong
     if ($self{encoding} &&
-	  lc $self{encoding} ne 'base64url') {
+    lc $self{encoding} ne 'base64url') {
       carp 'Encoding is not supported' and return;
     };
 
@@ -113,30 +113,30 @@ sub new {
 
       # Check algorithm
       if (($temp = $env->at('alg')) &&
-	    (uc $temp->text ne 'RSA-SHA256')) {
-	carp 'Algorithm is not supported' and return;
+            (uc $temp->text ne 'RSA-SHA256')) {
+        carp 'Algorithm is not supported' and return;
       };
 
       # Check encoding
       if (($temp = $env->at('encoding')) &&
-	    (lc $temp->text ne 'base64url')) {
-	carp 'Encoding is not supported' and return;
+            (lc $temp->text ne 'base64url')) {
+        carp 'Encoding is not supported' and return;
       };
 
       # Find signatures
       $env->find('sig')->each(
-	sub {
-	  my $sig_text = $_->text or return;
+        sub {
+          my $sig_text = $_->text or return;
 
-	  my %sig = ( value => _trim_all $sig_text );
+          my %sig = ( value => _trim_all $sig_text );
 
-	  if ($temp = $_->attr->{key_id}) {
-	    $sig{key_id} = $temp;
-	  };
+          if ($temp = $_->attr->{key_id}) {
+            $sig{key_id} = $temp;
+          };
 
-	  # Add sig to array
-	  push( @{ $self->{sigs} }, \%sig );
-	});
+          # Add sig to array
+          push( @{ $self->{sigs} }, \%sig );
+        });
     }
 
     # Message is me-json
@@ -147,12 +147,12 @@ sub new {
       $env = decode_json $string;
 
       unless (defined $env) {
-	return;
+        return;
       };
 
       # Clone datastructure
       foreach (qw/data data_type encoding alg sigs/) {
-	$self->{$_} = delete $env->{$_} if exists $env->{$_};
+        $self->{$_} = delete $env->{$_} if exists $env->{$_};
       };
 
       $self->data( b64url_decode( $self->data ));
@@ -162,7 +162,7 @@ sub new {
 
       # Unknown parameters
       carp 'Unknown parameters: ' . join(',', %$env)
-	if keys %$env;
+        if keys %$env;
     }
 
     # Message is me as a compact string
@@ -171,24 +171,24 @@ sub new {
       # Parse me compact string
       my $value = [];
       foreach (@$value = split(/\./, $me_c) ) {
-	$_ = b64url_decode( $_ ) if $_;
+        $_ = b64url_decode( $_ ) if $_;
       };
 
       # Given encoding is wrong
       unless (lc $value->[4] eq 'base64url') {
-	carp 'Encoding is not supported' and return;
+        carp 'Encoding is not supported' and return;
       };
 
       # Given algorithm is wrong
       unless (uc $value->[5] eq 'RSA-SHA256') {
-	carp 'Algorithm is not supported' and return;
+        carp 'Algorithm is not supported' and return;
       };
 
       # Store sig to data structure
       for ($self->{sigs}->[0]) {
-	next unless $value->[1];
-	$_->{key_id} = $value->[0] if defined $value->[0];
-	$_->{value}  = $value->[1];
+        next unless $value->[1];
+        $_->{key_id} = $value->[0] if defined $value->[0];
+        $_->{value}  = $value->[1];
       };
 
       # ME is empty
@@ -261,7 +261,7 @@ sub sign {
   # Choose data to sign
   my $data = $flag eq '-data' ?
     b64url_encode($self->data) :
-      $self->signature_base;
+    $self->signature_base;
 
   # Regarding key id:
   # "If the signer does not maintain individual key_ids,
@@ -273,7 +273,9 @@ sub sign {
   if ($mkey) {
 
     # No valid private key
-    return unless $mkey->d;
+    unless ($mkey->d) {
+      carp 'Unable to sign without private exponent' and return;
+    };
 
     # Compute signature for base string
     my $msig = $mkey->sign( $data );
@@ -329,16 +331,16 @@ sub verify {
     if ($sig) {
 
       if ($flag ne '-data') {
-	$verified = $mkey->verify($self->signature_base => $sig->{value});
-	last if $verified;
+        $verified = $mkey->verify($self->signature_base => $sig->{value});
+        last if $verified;
       };
 
       # Verify against data
       if ($flag eq '-data' || $flag eq '-compatible') {
 
-	# Verify with b64url data
-	$verified = $mkey->verify(b64url_encode($self->data) => $sig->{value});
-	last if $verified;
+        # Verify with b64url data
+        $verified = $mkey->verify(b64url_encode($self->data) => $sig->{value});
+        last if $verified;
       };
     };
   };
@@ -379,13 +381,13 @@ sub signature {
       # sig specifies key
       if (defined $_->{key_id}) {
 
-	# Found wanted key
-	return $_ if $_->{key_id} eq $key_id;
+        # Found wanted key
+        return $_ if $_->{key_id} eq $key_id;
       }
 
       # sig needs default key
       else {
-	$default = $_;
+        $default = $_;
       };
     };
 
@@ -420,10 +422,10 @@ sub signature_base {
 
   $self->{sig_base} ||=
     join('.',
-	 b64url_encode( $self->data, 0 ),
-	 b64url_encode( $self->data_type ),
-	 b64url_encode( $self->encoding ),
-	 b64url_encode( $self->alg )
+         b64url_encode( $self->data, 0 ),
+         b64url_encode( $self->data_type ),
+         b64url_encode( $self->encoding ),
+         b64url_encode( $self->alg )
        );
 
   return $self->{sig_base};
@@ -934,7 +936,7 @@ See the test suite for further information.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2014, L<Nils Diewald|http://nils-diewald.de/>.
+Copyright (C) 2012-2016, L<Nils Diewald|http://nils-diewald.de/>.
 
 This program is free software, you can redistribute it
 and/or modify it under the terms of the Artistic License version 2.0.
