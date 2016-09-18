@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our @CARP_NOT;
 
@@ -605,8 +605,8 @@ Crypt::MagicSignatures::Envelope - MagicEnvelopes for the Salmon Protocol
   use Crypt::MagicSignatures::Key;
   use Crypt::MagicSignatures::Envelope;
 
-  # Create a new MagicKey for signing messages
-  my $mkey = Crypt::MagicSignatures::Key->new(size => 1024);
+  # Generate a new MagicKey for signing messages
+  my $mkey = Crypt::MagicSignatures::Key->generate(size => 1024);
 
   # Fold a new envelope
   my $me = Crypt::MagicSignatures::Envelope->new(
