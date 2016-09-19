@@ -247,10 +247,46 @@ ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML) Fu
     </me:sig>
   </me:env>
 MEXML
-
-
-
 };
+
+ok($me = Crypt::MagicSignatures::Envelope->new(
+  data => 'U29tZSBhcmJpdHJhcnkgc3RyaW5nLg',
+  alg => 'RSA-SHA256',
+  encoding => 'base64url',
+  sigs => [
+    {
+      key_id => 'my-01',
+      value => 'S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpBUEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ=='
+    },
+    {
+      key_id => 'my-02'
+    },
+    {
+      key_id => 'my-03',
+      value => ''
+    },
+    {
+      value => 'S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpBUEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ=='
+    },
+  ]
+), 'Parameter constructor');
+
+ok($me->signed, 'Is signed');
+ok($me->signed('my-01'), 'Signed by specific key');
+ok(!$me->signed('my-03'), 'Not signed by specific key');
+
+like($me->to_xml, qr/<me:env\s+/, 'Envelope');
+like($me->to_xml(1), qr/^<me:provenance/, 'Provenance');
+
+my $json = $me->to_json;
+like($json,qr/^{/, 'JSON serialization');
+like($json, qr/\"sigs\":\[\{/, 'signature');
+
+# Reset data
+$me->data('');
+$json = $me->to_json;
+like($json,qr/\{\}/, 'JSON serialization');
+
 
 done_testing;
 

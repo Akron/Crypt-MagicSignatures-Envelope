@@ -25,39 +25,47 @@ sub new {
   my $self;
 
   # Bless object with parameters
-  if (@_ > 1 && !(@_ % 2)) {
+  if (@_ > 1) {
 
-    my %self = @_;
+    if (@_ % 2) {
+      carp 'Wrong number of arguments';
+      return;
+    };
+
+    my %param = @_;
 
     # Given algorithm is wrong
-    if ($self{alg} &&
-    uc $self{alg} ne 'RSA-SHA256') {
-      carp 'Algorithm is not supported' and return;
+    if ($param{alg} &&
+          uc($param{alg}) ne 'RSA-SHA256') {
+      carp 'Algorithm is not supported';
+      return;
     };
 
     # Given encoding is wrong
-    if ($self{encoding} &&
-    lc $self{encoding} ne 'base64url') {
-      carp 'Encoding is not supported' and return;
+    if ($param{encoding} &&
+          lc($param{encoding}) ne 'base64url') {
+      carp 'Encoding is not supported';
+      return;
     };
 
     # No payload is given
-    unless (defined $self{data}) {
-      carp 'No data payload defined' and return;
+    unless (defined $param{data}) {
+      carp 'No data payload defined';
+      return;
     };
 
     # Create object
     $self = bless {}, $class;
 
     # Set data
-    $self->data( delete $self{data} );
+    $self->data( delete $param{data} );
 
     # Set data type if defined
-    $self->data_type( delete $self{data_type} )
-      if $self{data_type};
+    $self->data_type( delete $param{data_type} )
+      if $param{data_type};
 
     # Append all defined signatures
-    foreach ( @{$self{sigs}} ) {
+    foreach ( @{$param{sigs}} ) {
 
       # No value is given
       next unless $_->{value};
@@ -76,10 +84,15 @@ sub new {
 
   # Envelope is defined as a string
   else {
-    my $string = trim shift;
+    my $string = shift;
 
     # Construct object
     $self = bless { sigs => [] }, $class;
+
+    # Create empty object
+    return $self unless $string;
+
+    $string = trim $string;
 
     # Message is me-xml
     if (index($string, '<') == 0) {
@@ -195,6 +208,12 @@ sub new {
       return unless $value->[2];
       $self->data( $value->[2] );
       $self->data_type( $value->[3] ) if $value->[3];
+    }
+
+    # String is no valid envelope
+    else {
+      carp 'Invalid envelope data';
+      return;
     };
   };
 
@@ -408,7 +427,7 @@ sub signed {
 
   # Check for specific key_id
   foreach my $sig (@{ $_[0]->{sigs} }) {
-    return 1 if $sig->{key_id} eq $_[1];
+    return 1 if $sig->{key_id} && $sig->{key_id} eq $_[1];
   };
 
   # Envelope is not signed

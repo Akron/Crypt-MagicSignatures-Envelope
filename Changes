@@ -1,7 +1,13 @@
-0.11 2016-09-18
+0.11 2016-09-19
         - Updated to recent version of C::MS::Key.
         - Made access rights Kwalitee compliant.
         - Added Readme.
+        - Improved code coverage
+                 stmt   bran   cond    sub   time  total
+               ------ ------ ------ ------ ------ ------
+          From:  86.9   59.8   63.4  100.0  100.0   76.1
+          To:    96.0   75.0   79.5  100.0  100.0   87.6
+               ------ ------ ------ ------ ------ ------
 
 0.10 2015-05-11
         - Warn on signing with public key.
