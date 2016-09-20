@@ -74,6 +74,78 @@ stderr_like(
   'Invalid envelope data passed'
 );
 
+stderr_like(
+  sub {
+    ok(!Crypt::MagicSignatures::Envelope->new('<kghjghjghj'), 'Create empty object');
+  },
+  qr/invalid envelope/i,
+  'Invalid envelope data passed'
+);
+
+# Namespace is missing
+stderr_like(
+  sub {
+    ok(!Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env>
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>base64url</me:encoding>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+  },
+  qr/invalid envelope/i,
+  'Invalid envelope data passed'
+);
+
+
+# Data is missing
+stderr_like(
+  sub {
+    ok(!Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:encoding>base64url</me:encoding>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+  },
+  qr/No data payload defined/i,
+  'No data payload defined'
+);
+
+
+
+
+done_testing;
+
+__END__
+
+ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>base64url</me:encoding>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+
 
 done_testing;
 

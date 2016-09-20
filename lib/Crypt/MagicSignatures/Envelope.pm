@@ -105,13 +105,19 @@ sub new {
       $env = $dom->at('provenance') unless $env;
 
       # Envelope doesn't exist or is in wrong namespace
-      return if !$env || $env->namespace ne $ME_NS;
+      if (!$env || $env->namespace ne $ME_NS) {
+        carp 'Invalid envelope data';
+        return;
+      };
 
       # Retrieve and edit data
       my $data = $env->at('data');
 
       # The envelope is empty
-      return unless $data;
+      unless (defined $data) {
+        carp 'No data payload defined';
+        return;
+      };
 
       my $temp;
 

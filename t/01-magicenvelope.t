@@ -60,7 +60,7 @@ is($me->data_type, 'text/plain', 'Data type');
 is($me->alg, 'RSA-SHA256', 'Algorithm');
 is($me->encoding, 'base64url', 'Encoding');
 
-# Ignore pading!
+# Ignore padding!
 ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
 
   <?xml version="1.0" encoding="UTF-8"?>
@@ -81,6 +81,32 @@ is($me->data, 'Some arbitrary string.', 'Data');
 is($me->data_type, 'text/plain', 'Data type');
 is($me->alg, 'RSA-SHA256', 'Algorithm');
 is($me->encoding, 'base64url', 'Encoding');
+
+
+# Test provenance
+ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <myEnvelope>
+    <me:provenance xmlns:me="http://salmon-protocol.org/ns/magic-env">
+      <me:data type="text/plain">
+        U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+      </me:data>
+      <me:encoding>base64url</me:encoding>
+      <me:alg>RSA-SHA256</me:alg>
+      <me:sig key_id="my-01">
+        S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+        UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+      </me:sig>
+    </me:provenance>
+  </myEnvelope>
+MEXML
+
+is($me->data, 'Some arbitrary string.', 'Data');
+is($me->data_type, 'text/plain', 'Data type');
+is($me->alg, 'RSA-SHA256', 'Algorithm');
+is($me->encoding, 'base64url', 'Encoding');
+
+
 
 ok(my $sig = $me->signature, 'Signature');
 is($sig->{key_id}, 'my-01', 'Signature Key id');
