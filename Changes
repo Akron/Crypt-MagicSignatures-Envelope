@@ -1,4 +1,4 @@
-0.11 2016-09-19
+0.11 2016-09-26
         - Updated to recent version of C::MS::Key.
         - Made access rights Kwalitee compliant.
         - Added Readme.
@@ -9,6 +9,7 @@
           To:    96.1   77.0   84.0  100.0  100.0   87.6
                ------ ------ ------ ------ ------ ------
         - Fixed error handling.
+        - Improved Makefile with meta_merge.
 
 0.10 2015-05-11
         - Warn on signing with public key.

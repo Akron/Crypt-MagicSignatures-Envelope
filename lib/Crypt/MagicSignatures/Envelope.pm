@@ -1,8 +1,8 @@
 package Crypt::MagicSignatures::Envelope;
+use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
+use Carp 'carp';
 use strict;
 use warnings;
-use Carp 'carp';
-use Crypt::MagicSignatures::Key qw/b64url_encode b64url_decode/;
 use Mojo::DOM;
 use Mojo::JSON qw/encode_json decode_json/;
 use Mojo::Util qw/trim/;
