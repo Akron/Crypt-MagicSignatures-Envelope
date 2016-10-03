@@ -445,15 +445,15 @@ sub signed {
 sub signature_base {
   my $self = shift;
 
-  $self->{sig_base} ||=
+  return $self->{sig_base} if $self->{sig_base};
+
+  return $self->{sig_base} =
     join('.',
          b64url_encode( $self->data, 0 ),
          b64url_encode( $self->data_type ),
          b64url_encode( $self->encoding ),
          b64url_encode( $self->alg )
        );
-
-  return $self->{sig_base};
 };
 
 

@@ -132,6 +132,7 @@ ok(my $mkey = Crypt::MagicSignatures::Key->new(
 # Unable to sign
 {
   local $SIG{__WARN__} = sub {};
+  ok(!$me->sign(), 'Unable to sign without parameters');
   ok(!$me->sign($mkey->to_string), 'Unable to sign without private exponent');
 };
 
@@ -148,6 +149,10 @@ ok(!$me->verify([my_second_key => $mkey->to_string]), 'Verify me base (fail)');
 is($me->signature_base,
    'U29tZSBhcmJpdHJhcnkgc3RyaW5nLg.dGV4dC9wbGFpbg==.YmFzZTY0dXJs.UlNBLVNIQTI1Ng==',
    'Base signature');
+
+is($me->signature_base,
+   'U29tZSBhcmJpdHJhcnkgc3RyaW5nLg.dGV4dC9wbGFpbg==.YmFzZTY0dXJs.UlNBLVNIQTI1Ng==',
+   'Base signature (from cache)');
 
 is_deeply($me->signature, {
   key_id => 'my_key',
