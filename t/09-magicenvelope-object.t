@@ -56,7 +56,8 @@ stderr_like(
   'No data payload'
 );
 
-ok(Crypt::MagicSignatures::Envelope->new, 'Create empty object');
+ok(my $empty = Crypt::MagicSignatures::Envelope->new, 'Create empty object');
+is($empty->data, '', 'Empty data');
 
 stderr_like(
   sub {

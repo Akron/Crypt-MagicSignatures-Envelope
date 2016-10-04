@@ -294,35 +294,32 @@ sub sign {
   #  of the SHA-256 hash of public key's application/magic-key
   #  representation."
 
-  # A valid key is given
-  if ($mkey) {
+  # A valid key needs to be available
+  return unless $mkey;
 
-    # No valid private key
-    unless ($mkey->d) {
-      carp 'Unable to sign without private exponent' and return;
-    };
-
-    # Compute signature for base string
-    my $msig = $mkey->sign( $data );
-
-    # No valid signature
-    return unless $msig;
-
-    # Sign envelope
-    my %msig = ( value => $msig );
-    $msig{key_id} = $key_id if defined $key_id;
-
-    # Push signature
-    push( @{ $self->{sigs} }, \%msig );
-
-    # Declare envelope as signed
-    $self->{signed} = 1;
-
-    # Return envelope for piping
-    return $self;
+  # No valid private key
+  unless ($mkey->d) {
+    carp 'Unable to sign without private exponent' and return;
   };
 
-  return;
+  # Compute signature for base string
+  my $msig = $mkey->sign( $data );
+
+  # No valid signature
+  return unless $msig;
+
+  # Sign envelope
+  my %msig = ( value => $msig );
+  $msig{key_id} = $key_id if defined $key_id;
+
+  # Push signature
+  push( @{ $self->{sigs} }, \%msig );
+
+  # Declare envelope as signed
+  $self->{signed} = 1;
+
+  # Return envelope for piping
+  return $self;
 };
 
 
