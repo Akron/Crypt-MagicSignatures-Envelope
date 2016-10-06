@@ -6,7 +6,7 @@
                  stmt   bran   cond    sub   time  total
                ------ ------ ------ ------ ------ ------
           From:  86.9   59.8   63.4  100.0  100.0   76.1
-          To:    96.1   78.0   85.3  100.0  100.0   89.3
+          To:    96.5   78.6   87.8  100.0  100.0   89.9
                ------ ------ ------ ------ ------ ------
         - Fixed error handling.
         - Improved Makefile with meta_merge.
