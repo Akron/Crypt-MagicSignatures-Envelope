@@ -65,7 +65,7 @@ ok($me = Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
 
   <?xml version="1.0" encoding="UTF-8"?>
   <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
-    <me:data type="text/plain">
+    <me:data>
       U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
     </me:data>
     <me:encoding>base64url</me:encoding>

@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 our @CARP_NOT;
 
@@ -127,13 +127,17 @@ sub new {
       # Add decoded data
       $self->data( b64url_decode( $data->text ) );
 
-      # Envelope is empty
-      return unless $self->data;
+      # The envelope is empty
+      unless ($self->data) {
+        carp 'No data payload defined';
+        return;
+      };
 
       # Check algorithm
       if (($temp = $env->at('alg')) &&
             (uc $temp->text ne 'RSA-SHA256')) {
-        carp 'Algorithm is not supported' and return;
+        carp 'Algorithm is not supported';
+        return;
       };
 
       # Check encoding

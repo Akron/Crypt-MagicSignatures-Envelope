@@ -125,6 +125,49 @@ MEXML
   'No data payload defined'
 );
 
+# Data is missing
+stderr_like(
+  sub {
+    ok(!Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:encoding>base64url</me:encoding>
+    <me:data type="text/plain">
+      ==========
+    </me:data>
+    <me:alg>RSA-SHA256</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+  },
+  qr/No data payload defined/i,
+  'No data payload defined'
+);
+
+# Invalid algorithm
+stderr_like(
+  sub {
+    ok(!Crypt::MagicSignatures::Envelope->new(<<'MEXML'), 'Constructor (XML)');
+  <?xml version="1.0" encoding="UTF-8"?>
+  <me:env xmlns:me="http://salmon-protocol.org/ns/magic-env">
+    <me:data type="text/plain">
+      U29tZSBhcmJpdHJhcnkgc3RyaW5nLg==
+    </me:data>
+    <me:encoding>base64url</me:encoding>
+    <me:alg>MD5</me:alg>
+    <me:sig key_id="my-01">
+      S1VqYVlIWFpuRGVTX3l4S09CcWdjRVFDYVluZkI5Ulh4dmRFSnFhQW5XUmpB
+      UEJqZUM0b0lReER4d0IwWGVQZDhzWHAxN3oybWhpTk1vNHViNGNVOVE9PQ==
+    </me:sig>
+  </me:env>
+MEXML
+  },
+  qr/Algorithm is not supported/i,
+  'Algorithm is not supported'
+);
 
 
 
