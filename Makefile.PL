@@ -13,7 +13,7 @@ WriteMakefile(
     'Test::More' => 0
   },
   PREREQ_PM => {
-    'Crypt::MagicSignatures::Key' => '0.16',
+    'Crypt::MagicSignatures::Key' => '0.21',
     'Mojolicious' => '4.82',
     'Carp' => 0,
   },

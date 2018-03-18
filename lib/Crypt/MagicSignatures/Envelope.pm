@@ -9,7 +9,7 @@ use Mojo::Util qw/trim/;
 
 use v5.10.1;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 our @CARP_NOT;
 
@@ -58,7 +58,7 @@ sub new {
     $self = bless {}, $class;
 
     # Set data
-    $self->data( delete $param{data} );
+    $self->data( delete $param{data} ) if $param{data};
 
     # Set data type if defined
     $self->data_type( delete $param{data_type} )
@@ -284,6 +284,8 @@ sub sign {
 
   return unless @_;
 
+  return unless $self->data;
+
   # Get key and signature information
   my ($key_id, $mkey, $flag) = _key_array(@_);
 
@@ -465,6 +467,9 @@ sub dom {
   # Already computed
   return $self->{dom} if $self->{dom};
 
+  # No data defined to parse
+  return unless $self->{data};
+
   # Create new DOM instantiation
   if (index($self->data_type, 'xml') >= 0) {
     my $dom = Mojo::DOM->new(xml => 1);
@@ -561,7 +566,7 @@ sub to_json {
     sigs      => []
   );
 
-  # loop through signatures
+  # Loop through signatures
   foreach my $sig ( @{ $self->{sigs} } ) {
     my %msig = ( value => b64url_encode( $sig->{value} ) );
     $msig{key_id} = $sig->{key_id} if defined $sig->{key_id};
@@ -579,6 +584,7 @@ sub _trim_all {
   $string =~ tr{\t-\x0d }{}d;
   $string;
 };
+
 
 sub _key_array {
   return () unless @_;
@@ -946,7 +952,8 @@ L<Crypt::MagicSignatures::Key|Crypt::MagicSignatures::Key/DEPENDENCIES>.
 =head1 KNOWN BUGS AND LIMITATIONS
 
 The signing and verification is not guaranteed to be
-compatible with other implementations!
+compatible with other implementations, due to different
+versions of the specification.
 Implementations like L<StatusNet|http://status.net/> (L<Identi.ca|http://identi.ca/>),
 L<MiniMe|https://code.google.com/p/minime-microblogger/>, and examples from the
 L<reference implementation|https://code.google.com/p/salmon-protocol/source/browse/>
@@ -962,7 +969,7 @@ See the test suite for further information.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2016, L<Nils Diewald|http://nils-diewald.de/>.
+Copyright (C) 2012-2017, L<Nils Diewald|http://nils-diewald.de/>.
 
 This program is free software, you can redistribute it
 and/or modify it under the terms of the Artistic License version 2.0.
