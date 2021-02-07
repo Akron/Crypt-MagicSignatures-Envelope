@@ -1,3 +1,6 @@
+0.15 2021-02-07
+        - Move bugtracker to GitHub.
+
 0.14 2018-03-18
         - Updated dependency for C::MS::Key.
         - Improve treatment of failing envelopes.
